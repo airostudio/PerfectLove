@@ -1,7 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Link from "next/link";
+import { readings, categoryOrder } from "@/lib/readings";
+import CategorySection from "@/components/CategorySection";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -16,7 +17,7 @@ export default function Home() {
   return (
     <main className="min-h-screen flex flex-col">
       {/* Hero */}
-      <section className="flex-1 flex flex-col items-center justify-center px-6 py-24 text-center">
+      <section className="flex flex-col items-center justify-center px-6 pt-20 pb-16 text-center">
         <motion.p
           custom={0}
           initial="hidden"
@@ -24,7 +25,7 @@ export default function Home() {
           variants={fadeUp}
           className="text-xs uppercase tracking-[0.35em] text-orchid/60 mb-6"
         >
-          Written in the stars
+          Navigate your life through modern astrology
         </motion.p>
 
         <motion.h1
@@ -32,11 +33,11 @@ export default function Home() {
           initial="hidden"
           animate="visible"
           variants={fadeUp}
-          className="font-serif text-5xl md:text-7xl lg:text-8xl font-normal text-bone leading-[1.1] mb-6 max-w-3xl"
+          className="font-serif text-5xl md:text-7xl font-normal text-bone leading-[1.1] mb-6 max-w-2xl"
         >
-          The Universe Knows
+          Your Cosmic
           <br />
-          <em className="text-orchid">Your Person</em>
+          <em className="text-orchid">Insights</em>
         </motion.h1>
 
         <motion.p
@@ -44,10 +45,10 @@ export default function Home() {
           initial="hidden"
           animate="visible"
           variants={fadeUp}
-          className="text-base md:text-lg text-mist max-w-md mb-10 leading-relaxed"
+          className="text-base md:text-lg text-mist max-w-lg mb-8 leading-relaxed"
         >
-          Four questions. Your cosmic blueprint. A hand-sketched portrait
-          of the soul meant to find yours.
+          Sketch readings, tarot pulls, birth charts, and more.
+          Everything you need to understand yourself and the ones you love.
         </motion.p>
 
         <motion.div
@@ -55,27 +56,10 @@ export default function Home() {
           initial="hidden"
           animate="visible"
           variants={fadeUp}
-        >
-          <Link href="/quiz">
-            <motion.span
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.97 }}
-              className="btn-mystic inline-block px-10 py-4 text-white text-base cursor-pointer"
-            >
-              Begin Your Reading
-            </motion.span>
-          </Link>
-        </motion.div>
-
-        <motion.div
-          custom={4}
-          initial="hidden"
-          animate="visible"
-          variants={fadeUp}
-          className="mt-8 space-y-1"
+          className="space-y-1"
         >
           <p className="text-sm text-gold font-medium">
-            First month just $1.29
+            All readings included &middot; First month $1.29
           </p>
           <p className="text-xs text-ash">
             Then $16.99/mo &middot; Cancel anytime
@@ -83,47 +67,22 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* How it works */}
-      <section className="px-6 pb-24">
-        <div className="max-w-3xl mx-auto">
-          <div className="mystic-divider mb-16" />
+      {/* Readings by category */}
+      <section className="px-6 pb-12 max-w-6xl mx-auto w-full">
+        <div className="mystic-divider mb-16" />
 
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="grid md:grid-cols-3 gap-8 text-center"
-          >
-            {[
-              {
-                icon: "\u2727",
-                title: "Reflect",
-                desc: "Answer 4 questions about your inner world and cosmic energy.",
-              },
-              {
-                icon: "\u2726",
-                title: "Align",
-                desc: "We map your answers to celestial patterns and planetary rhythms.",
-              },
-              {
-                icon: "\u2728",
-                title: "Reveal",
-                desc: "Receive a hand-sketched portrait of your soulmate within 24 hours.",
-              },
-            ].map((item) => (
-              <div key={item.title}>
-                <p className="text-2xl mb-3">{item.icon}</p>
-                <h3 className="font-serif text-xl text-bone mb-2">
-                  {item.title}
-                </h3>
-                <p className="text-sm text-mist/70 leading-relaxed">
-                  {item.desc}
-                </p>
-              </div>
-            ))}
-          </motion.div>
-        </div>
+        {categoryOrder.map((category) => {
+          const categoryReadings = readings.filter(
+            (r) => r.category === category
+          );
+          return (
+            <CategorySection
+              key={category}
+              category={category}
+              readings={categoryReadings}
+            />
+          );
+        })}
       </section>
 
       {/* Footer */}

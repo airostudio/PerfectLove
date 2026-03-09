@@ -5,9 +5,10 @@ import { useState } from "react";
 
 interface PriceCardProps {
   answers: Record<string, string>;
+  readingTitle?: string;
 }
 
-export default function PriceCard({ answers }: PriceCardProps) {
+export default function PriceCard({ answers, readingTitle }: PriceCardProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -45,11 +46,10 @@ export default function PriceCard({ answers }: PriceCardProps) {
           Your cosmic reading is ready
         </p>
         <h2 className="font-serif text-3xl md:text-4xl text-bone mb-2">
-          Reveal Your Match
+          {readingTitle || "Unlock Your Reading"}
         </h2>
         <p className="text-sm text-mist/60 mb-8">
-          A hand-sketched soulmate portrait based on your unique cosmic
-          blueprint.
+          Your personalized reading based on your unique cosmic blueprint.
         </p>
 
         {/* Price display */}
@@ -73,15 +73,15 @@ export default function PriceCard({ answers }: PriceCardProps) {
         <ul className="text-left text-mist/70 text-sm space-y-3 mb-8">
           <li className="flex items-start gap-3">
             <span className="text-gold text-xs mt-0.5">{"\u2726"}</span>
-            <span>Hand-sketched soulmate portrait delivered within 24 hours</span>
+            <span>Your personalized reading delivered within 24 hours</span>
           </li>
           <li className="flex items-start gap-3">
             <span className="text-gold text-xs mt-0.5">{"\u2726"}</span>
-            <span>Monthly personalized cosmic love readings</span>
+            <span>Full access to all 16 readings, sketches, and tarot pulls</span>
           </li>
           <li className="flex items-start gap-3">
             <span className="text-gold text-xs mt-0.5">{"\u2726"}</span>
-            <span>Compatibility insights based on planetary alignments</span>
+            <span>Monthly cosmic insights and compatibility updates</span>
           </li>
         </ul>
 
