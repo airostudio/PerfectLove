@@ -45,7 +45,6 @@ export default function ReadingQuizPage() {
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center px-6 py-20">
-      {/* Reading title */}
       {!quizComplete && (
         <p className="text-xs uppercase tracking-[0.3em] text-orchid/50 mb-10 text-center">
           {reading.icon} {reading.title}

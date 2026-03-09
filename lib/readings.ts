@@ -48,7 +48,7 @@ export const readings: Reading[] = [
       "See your soulmate through a personalized sketch and explore the romantic potential destined for you.",
     category: "sketches",
     icon: "\u2661",
-    href: "/quiz/soulmate-sketch",
+    href: "/reading/soulmate-sketch",
   },
   {
     id: "future-baby-sketch",
@@ -57,7 +57,7 @@ export const readings: Reading[] = [
       "Discover a heartfelt preview of your future child through a hand-drawn sketch and personalized insights into their unique spirit and connection with you.",
     category: "sketches",
     icon: "\u2727",
-    href: "/quiz/future-baby-sketch",
+    href: "/reading/future-baby-sketch",
   },
 
   // ── Astrology & Numerology ──
@@ -68,7 +68,7 @@ export const readings: Reading[] = [
       "Discover your unique strengths, challenges, and life path through your personal birth chart.",
     category: "astrology",
     icon: "\u2609",
-    href: "/quiz/natal-chart",
+    href: "/reading/natal-chart",
   },
   {
     id: "astrocartography",
@@ -77,7 +77,7 @@ export const readings: Reading[] = [
       "Reveal the cities where your planetary energy is strongest. Discover where you naturally belong and thrive around the world.",
     category: "astrology",
     icon: "\u2637",
-    href: "/quiz/astrocartography",
+    href: "/reading/astrocartography",
   },
   {
     id: "numerology",
@@ -86,7 +86,7 @@ export const readings: Reading[] = [
       "Reveal the power of numbers in your life. Discover how your life path, destiny, and soul numbers shape your future.",
     category: "astrology",
     icon: "\u2116",
-    href: "/quiz/numerology",
+    href: "/reading/numerology",
   },
   {
     id: "compatibility",
@@ -95,7 +95,7 @@ export const readings: Reading[] = [
       "Discover how compatible you are with someone special and explore your relationship dynamics in love, friendship, and karmic connections.",
     category: "astrology",
     icon: "\u2662",
-    href: "/quiz/compatibility",
+    href: "/reading/compatibility",
   },
   {
     id: "complete-astrology-guide",
@@ -104,7 +104,7 @@ export const readings: Reading[] = [
       "Understand your Sun, Moon, and Rising signs, learn to read birth charts, and explore planets, houses, and aspects\u2014all in one beginner-friendly eBook.",
     category: "astrology",
     icon: "\u2606",
-    href: "/quiz/complete-astrology-guide",
+    href: "/reading/complete-astrology-guide",
   },
   {
     id: "2026-forecast",
@@ -113,7 +113,7 @@ export const readings: Reading[] = [
       "Get a personalized forecast for the year ahead. Discover key astrological events and how they\u2019ll shape your love life, career, and personal growth in 2026.",
     category: "astrology",
     icon: "\u2604",
-    href: "/quiz/2026-forecast",
+    href: "/reading/2026-forecast",
   },
 
   // ── Palmistry ──
@@ -124,7 +124,7 @@ export const readings: Reading[] = [
       "Decode the lines in your hands to uncover your personality, future, and key life events. Explore your strengths and challenges through this unique insight.",
     category: "palmistry",
     icon: "\u270B",
-    href: "/quiz/palmistry",
+    href: "/reading/palmistry",
   },
 
   // ── Tarot ──
@@ -135,7 +135,7 @@ export const readings: Reading[] = [
       "Ask a clear question and pull one card for a direct yes-leaning or no-leaning answer with quick guidance.",
     category: "tarot",
     icon: "\u2748",
-    href: "/quiz/yes-no-tarot",
+    href: "/reading/yes-no-tarot",
   },
   {
     id: "past-present-future-tarot",
@@ -144,7 +144,7 @@ export const readings: Reading[] = [
       "Three cards that show what shaped this situation, where things stand now, and what direction it is moving toward.",
     category: "tarot",
     icon: "\u29D6",
-    href: "/quiz/past-present-future-tarot",
+    href: "/reading/past-present-future-tarot",
   },
   {
     id: "past-love-clarity-tarot",
@@ -153,7 +153,7 @@ export const readings: Reading[] = [
       "Learn where your ex truly stands and whether reconnecting supports your future.",
     category: "tarot",
     icon: "\u2619",
-    href: "/quiz/past-love-clarity-tarot",
+    href: "/reading/past-love-clarity-tarot",
   },
   {
     id: "love-triangle-tarot",
@@ -162,7 +162,7 @@ export const readings: Reading[] = [
       "Three cards to show your role in this love triangle and what each person brings into your life.",
     category: "tarot",
     icon: "\u25B3",
-    href: "/quiz/love-triangle-tarot",
+    href: "/reading/love-triangle-tarot",
   },
   {
     id: "true-compatibility-tarot",
@@ -171,7 +171,7 @@ export const readings: Reading[] = [
       "One card to reveal if this relationship is worth the effort and truly aligned with your future.",
     category: "tarot",
     icon: "\u2661",
-    href: "/quiz/true-compatibility-tarot",
+    href: "/reading/true-compatibility-tarot",
   },
   {
     id: "heartbreak-healing-tarot",
@@ -180,6 +180,6 @@ export const readings: Reading[] = [
       "See what\u2019s keeping you stuck and what to do next. A two-card Tarot reading to help you heal and move on.",
     category: "tarot",
     icon: "\u2764\uFE0F\u200D\u{1FA79}",
-    href: "/quiz/heartbreak-healing-tarot",
+    href: "/reading/heartbreak-healing-tarot",
   },
 ];

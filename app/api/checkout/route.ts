@@ -26,8 +26,8 @@ export async function POST(req: NextRequest) {
         answers: JSON.stringify(answers),
         reading_id: readingId,
       },
-      success_url: `${appUrl}/quiz/success?session_id={CHECKOUT_SESSION_ID}&reading=${readingId}`,
-      cancel_url: `${appUrl}/quiz/${readingId}`,
+      success_url: `${appUrl}/reading/success?session_id={CHECKOUT_SESSION_ID}&reading=${readingId}`,
+      cancel_url: `${appUrl}/reading/${readingId}`,
     });
 
     return NextResponse.json({ url: session.url });
