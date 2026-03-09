@@ -19,22 +19,22 @@ export default function SuccessPage() {
         </h1>
 
         <p className="text-mist/70 mb-4 leading-relaxed">
-          Your soulmate sketch is being crafted with cosmic care. Check your
-          inbox within{" "}
-          <span className="text-gold font-medium">24 hours</span> for the
+          Your reading is being crafted with cosmic care. Check your inbox
+          within{" "}
+          <span className="text-gold font-medium">24 hours</span> for the full
           reveal.
         </p>
 
         <p className="text-xs text-ash mb-8">
-          Your subscription is active. You&apos;ll receive monthly cosmic love
-          readings going forward. Cancel anytime.
+          A confirmation has been sent to your email. Your complete personalized
+          reading will follow within 24 hours.
         </p>
 
         <div className="mystic-divider mb-6" />
 
         <Link href="/">
           <span className="text-orchid hover:text-bone transition-colors text-sm cursor-pointer">
-            &larr; Return Home
+            &larr; Explore more readings
           </span>
         </Link>
       </motion.div>

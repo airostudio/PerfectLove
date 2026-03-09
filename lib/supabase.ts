@@ -15,11 +15,11 @@ export function getSupabase(): SupabaseClient {
 export interface OrderRecord {
   id: string;
   email: string;
+  reading_id: string;
   answers: Record<string, string>;
   stripe_session_id: string;
-  stripe_subscription_id: string | null;
-  stripe_customer_id: string | null;
-  status: "processing" | "delivered" | "cancelled";
+  amount_paid: number;
+  status: "processing" | "delivered";
   delivery_at: string;
   created_at: string;
 }

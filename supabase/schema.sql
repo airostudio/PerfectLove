@@ -5,11 +5,11 @@
 create table public.orders (
   id uuid default gen_random_uuid() primary key,
   email text not null,
+  reading_id text not null,
   answers jsonb not null default '{}',
   stripe_session_id text not null unique,
-  stripe_subscription_id text,
-  stripe_customer_id text,
-  status text not null default 'processing' check (status in ('processing', 'delivered', 'cancelled')),
+  amount_paid integer not null default 0,
+  status text not null default 'processing' check (status in ('processing', 'delivered')),
   delivery_at timestamptz not null,
   created_at timestamptz default now() not null
 );
@@ -21,9 +21,8 @@ create index idx_orders_delivery on public.orders (status, delivery_at)
 -- 3. Index for looking up orders by email
 create index idx_orders_email on public.orders (email);
 
--- 4. Index for subscription lookups
-create index idx_orders_subscription on public.orders (stripe_subscription_id)
-  where stripe_subscription_id is not null;
+-- 4. Index for looking up orders by reading type
+create index idx_orders_reading on public.orders (email, reading_id);
 
 -- 5. Enable Row Level Security (required by Supabase best practices)
 alter table public.orders enable row level security;

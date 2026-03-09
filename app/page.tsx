@@ -59,10 +59,10 @@ export default function Home() {
           className="space-y-1"
         >
           <p className="text-sm text-gold font-medium">
-            All readings included &middot; First month $1.29
+            Take the quiz free &middot; Unlock your full reading for $6.99
           </p>
           <p className="text-xs text-ash">
-            Then $16.99/mo &middot; Cancel anytime
+            One-time payment per reading &middot; No subscription
           </p>
         </motion.div>
       </section>

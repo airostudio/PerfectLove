@@ -6,7 +6,7 @@ import { AnimatePresence } from "framer-motion";
 import { getQuestionsForReading } from "@/lib/questions";
 import { readings } from "@/lib/readings";
 import QuizStep from "@/components/QuizStep";
-import PriceCard from "@/components/PriceCard";
+import TeaserPreview from "@/components/TeaserPreview";
 import Link from "next/link";
 
 export default function ReadingQuizPage() {
@@ -63,10 +63,11 @@ export default function ReadingQuizPage() {
               totalSteps={questions.length}
             />
           ) : (
-            <PriceCard
-              key="price"
-              answers={{ ...answers, reading_id: readingId }}
+            <TeaserPreview
+              key="teaser"
+              readingId={readingId}
               readingTitle={reading.title}
+              answers={answers}
             />
           )}
         </AnimatePresence>

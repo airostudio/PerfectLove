@@ -18,11 +18,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
-  const supabase = getSupabase();
-
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
-    const answers = JSON.parse(session.metadata?.answers || "{}");
+    const metadata = session.metadata || {};
+    const answers = JSON.parse(metadata.answers || "{}");
+    const readingId = metadata.reading_id || "unknown";
     const email = session.customer_details?.email;
 
     if (email) {
@@ -30,25 +30,16 @@ export async function POST(req: NextRequest) {
         Date.now() + 24 * 60 * 60 * 1000
       ).toISOString();
 
-      await supabase.from("orders").insert({
+      await getSupabase().from("orders").insert({
         email,
+        reading_id: readingId,
         answers,
         stripe_session_id: session.id,
-        stripe_subscription_id: session.subscription as string,
-        stripe_customer_id: session.customer as string,
+        amount_paid: session.amount_total,
         status: "processing",
         delivery_at: deliveryAt,
       });
     }
-  }
-
-  // Handle subscription cancellation
-  if (event.type === "customer.subscription.deleted") {
-    const subscription = event.data.object as Stripe.Subscription;
-    await supabase
-      .from("orders")
-      .update({ status: "cancelled" })
-      .eq("stripe_subscription_id", subscription.id);
   }
 
   return NextResponse.json({ received: true });
