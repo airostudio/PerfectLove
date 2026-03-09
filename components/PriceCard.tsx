@@ -9,20 +9,26 @@ interface PriceCardProps {
 
 export default function PriceCard({ answers }: PriceCardProps) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleCheckout = async () => {
     setLoading(true);
+    setError("");
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ answers }),
       });
-      const { url } = await res.json();
-      if (url) {
-        window.location.href = url;
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setError(data.error || "Something went wrong");
+        setLoading(false);
       }
     } catch {
+      setError("Connection failed. Please try again.");
       setLoading(false);
     }
   };
@@ -35,53 +41,68 @@ export default function PriceCard({ answers }: PriceCardProps) {
       className="w-full max-w-md mx-auto text-center"
     >
       <div className="glass-card p-8 md:p-10">
-        <p className="text-sm uppercase tracking-widest text-aura-glow mb-2">
-          Your Soulmate Sketch
+        <p className="text-xs uppercase tracking-[0.3em] text-orchid/60 mb-3">
+          Your cosmic reading is ready
         </p>
-        <h2 className="text-3xl md:text-4xl font-light text-white mb-4">
+        <h2 className="font-serif text-3xl md:text-4xl text-bone mb-2">
           Reveal Your Match
         </h2>
+        <p className="text-sm text-mist/60 mb-8">
+          A hand-sketched soulmate portrait based on your unique cosmic
+          blueprint.
+        </p>
 
         {/* Price display */}
-        <div className="mb-6">
-          <span className="text-aura-soft/50 line-through text-lg mr-2">
-            $59.90
-          </span>
-          <span className="text-5xl font-bold text-white">$1.29</span>
-          <span className="text-aura-soft/70 text-sm ml-1">USD</span>
+        <div className="mb-2">
+          <span className="text-5xl font-serif text-bone">$1.29</span>
+          <span className="text-mist/50 text-sm ml-2">first month</span>
         </div>
+        <p className="text-xs text-ash mb-6">
+          Then $16.99/mo &middot; Cancel anytime
+        </p>
 
         {/* Discount badge */}
-        <div className="inline-block bg-aura-rose/20 border border-aura-rose/40 rounded-full px-4 py-1 mb-6">
-          <span className="text-aura-rose text-sm font-medium">
-            97.9% OFF — Limited Time
+        <div className="inline-block bg-amethyst/10 border border-amethyst/25 rounded-full px-4 py-1.5 mb-8">
+          <span className="text-orchid text-xs font-medium tracking-wide">
+            92% OFF YOUR FIRST MONTH
           </span>
         </div>
 
-        <ul className="text-left text-aura-soft/80 text-sm space-y-2 mb-8">
-          <li className="flex items-center gap-2">
-            <span className="text-aura-gold">&#10022;</span> Hand-sketched
-            soulmate portrait
+        {/* What you get */}
+        <div className="mystic-divider mb-6" />
+        <ul className="text-left text-mist/70 text-sm space-y-3 mb-8">
+          <li className="flex items-start gap-3">
+            <span className="text-gold text-xs mt-0.5">{"\u2726"}</span>
+            <span>Hand-sketched soulmate portrait delivered within 24 hours</span>
           </li>
-          <li className="flex items-center gap-2">
-            <span className="text-aura-gold">&#10022;</span> Delivered to your
-            inbox within 24 hours
+          <li className="flex items-start gap-3">
+            <span className="text-gold text-xs mt-0.5">{"\u2726"}</span>
+            <span>Monthly personalized cosmic love readings</span>
           </li>
-          <li className="flex items-center gap-2">
-            <span className="text-aura-gold">&#10022;</span> Based on your
-            cosmic profile
+          <li className="flex items-start gap-3">
+            <span className="text-gold text-xs mt-0.5">{"\u2726"}</span>
+            <span>Compatibility insights based on planetary alignments</span>
           </li>
         </ul>
+
+        {error && (
+          <p className="text-dusty-rose text-sm mb-4">{error}</p>
+        )}
 
         <motion.button
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
           onClick={handleCheckout}
           disabled={loading}
-          className="w-full py-4 rounded-xl bg-gradient-to-r from-aura-violet to-aura-rose text-white font-semibold text-lg transition-opacity disabled:opacity-50 cursor-pointer"
+          className="btn-mystic w-full py-4 text-white text-base disabled:opacity-50 cursor-pointer"
         >
-          {loading ? "Preparing…" : "Get My Sketch — $1.29"}
+          {loading ? "Preparing\u2026" : "Start My Reading \u2014 $1.29"}
         </motion.button>
+
+        <p className="mt-4 text-[10px] text-ash/40 leading-relaxed">
+          Secure payment via Stripe. Your subscription renews at $16.99/mo
+          after the first month. Cancel anytime from your account.
+        </p>
       </div>
     </motion.div>
   );

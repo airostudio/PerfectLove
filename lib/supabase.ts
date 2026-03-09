@@ -17,7 +17,9 @@ export interface OrderRecord {
   email: string;
   answers: Record<string, string>;
   stripe_session_id: string;
-  status: "processing" | "delivered";
+  stripe_subscription_id: string | null;
+  stripe_customer_id: string | null;
+  status: "processing" | "delivered" | "cancelled";
   delivery_at: string;
   created_at: string;
 }

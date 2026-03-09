@@ -5,26 +5,35 @@ import Link from "next/link";
 
 export default function SuccessPage() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center px-6 py-20 relative overflow-hidden">
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-aura-gold/10 rounded-full blur-[120px] pointer-events-none" />
-
+    <main className="min-h-screen flex flex-col items-center justify-center px-6 py-20">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="relative z-10 glass-card p-10 md:p-14 max-w-lg text-center"
+        className="glass-card p-10 md:p-14 max-w-lg text-center"
       >
-        <div className="text-5xl mb-6">&#10024;</div>
-        <h1 className="text-3xl md:text-4xl font-light text-white mb-4">
+        <p className="text-3xl mb-6">{"\u2728"}</p>
+
+        <h1 className="font-serif text-3xl md:text-4xl text-bone mb-4">
           The Stars Are Aligning
         </h1>
-        <p className="text-aura-soft/70 mb-8">
+
+        <p className="text-mist/70 mb-4 leading-relaxed">
           Your soulmate sketch is being crafted with cosmic care. Check your
-          inbox within <span className="text-aura-gold font-medium">24 hours</span> for
-          the reveal.
+          inbox within{" "}
+          <span className="text-gold font-medium">24 hours</span> for the
+          reveal.
         </p>
+
+        <p className="text-xs text-ash mb-8">
+          Your subscription is active. You&apos;ll receive monthly cosmic love
+          readings going forward. Cancel anytime.
+        </p>
+
+        <div className="mystic-divider mb-6" />
+
         <Link href="/">
-          <span className="text-aura-glow hover:text-white transition-colors text-sm cursor-pointer">
+          <span className="text-orchid hover:text-bone transition-colors text-sm cursor-pointer">
             &larr; Return Home
           </span>
         </Link>

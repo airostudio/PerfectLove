@@ -17,11 +17,8 @@ export default function QuizPage() {
   };
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center px-6 py-20 relative overflow-hidden">
-      {/* Ambient glow */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-aura-violet/15 rounded-full blur-[100px] pointer-events-none" />
-
-      <div className="relative z-10 w-full">
+    <main className="min-h-screen flex flex-col items-center justify-center px-6 py-20">
+      <div className="w-full">
         <AnimatePresence mode="wait">
           {!quizComplete ? (
             <QuizStep

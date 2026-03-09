@@ -1,5 +1,5 @@
 -- PerfectLove Database Schema
--- Run this in the Supabase SQL Editor (https://supabase.com/dashboard → SQL Editor)
+-- Run this in the Supabase SQL Editor (https://supabase.com/dashboard -> SQL Editor)
 
 -- 1. Create the orders table
 create table public.orders (
@@ -7,7 +7,9 @@ create table public.orders (
   email text not null,
   answers jsonb not null default '{}',
   stripe_session_id text not null unique,
-  status text not null default 'processing' check (status in ('processing', 'delivered')),
+  stripe_subscription_id text,
+  stripe_customer_id text,
+  status text not null default 'processing' check (status in ('processing', 'delivered', 'cancelled')),
   delivery_at timestamptz not null,
   created_at timestamptz default now() not null
 );
@@ -19,11 +21,14 @@ create index idx_orders_delivery on public.orders (status, delivery_at)
 -- 3. Index for looking up orders by email
 create index idx_orders_email on public.orders (email);
 
--- 4. Enable Row Level Security (required by Supabase best practices)
+-- 4. Index for subscription lookups
+create index idx_orders_subscription on public.orders (stripe_subscription_id)
+  where stripe_subscription_id is not null;
+
+-- 5. Enable Row Level Security (required by Supabase best practices)
 alter table public.orders enable row level security;
 
--- 5. Policy: only the service role (backend) can access orders
---    No client-side access needed since all operations go through API routes
+-- 6. Policy: only the service role (backend) can access orders
 create policy "Service role full access" on public.orders
   for all
   using (auth.role() = 'service_role')

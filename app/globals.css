@@ -1,38 +1,150 @@
 @import "tailwindcss";
 
 @theme {
-  /* Aura Theme Colors */
-  --color-aura-deep: #0a0a1a;
-  --color-aura-midnight: #111133;
-  --color-aura-violet: #6c3ce0;
-  --color-aura-rose: #e84393;
-  --color-aura-gold: #f9ca24;
-  --color-aura-soft: #dfe6e9;
-  --color-aura-glow: #a29bfe;
+  /* Mystic Theme — alt-feminine, witchy, celestial warmth */
+  --color-void: #0a0510;
+  --color-abyss: #120b1e;
+  --color-plum: #1e0f30;
+  --color-amethyst: #9333ea;
+  --color-orchid: #c084fc;
+  --color-dusty-rose: #e8a0b4;
+  --color-ember: #d97706;
+  --color-gold: #f0c050;
+  --color-sage: #a3b18a;
+  --color-bone: #ede4d8;
+  --color-mist: #b8a9c4;
+  --color-ash: #7a6d8a;
+  --color-chalk: #f5f0eb;
 
+  --font-serif: "Playfair Display", "Georgia", serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
-  background: linear-gradient(135deg, var(--color-aura-deep) 0%, var(--color-aura-midnight) 50%, #1a0a2e 100%);
-  color: var(--color-aura-soft);
+  background: var(--color-void);
+  color: var(--color-mist);
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
-/* Glassmorphism utility */
-.glass {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid;
-  border-image-source: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
-  border-image-slice: 1;
+/* Starfield */
+.starfield {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(1px 1px at 10% 20%, rgba(237, 228, 216, 0.35) 0%, transparent 100%),
+    radial-gradient(1px 1px at 30% 65%, rgba(237, 228, 216, 0.25) 0%, transparent 100%),
+    radial-gradient(1px 1px at 50% 10%, rgba(240, 192, 80, 0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 70% 40%, rgba(237, 228, 216, 0.2) 0%, transparent 100%),
+    radial-gradient(1px 1px at 90% 80%, rgba(192, 132, 252, 0.25) 0%, transparent 100%),
+    radial-gradient(1px 1px at 15% 85%, rgba(237, 228, 216, 0.2) 0%, transparent 100%),
+    radial-gradient(1px 1px at 45% 50%, rgba(237, 228, 216, 0.25) 0%, transparent 100%),
+    radial-gradient(1px 1px at 85% 15%, rgba(240, 192, 80, 0.25) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 25% 35%, rgba(192, 132, 252, 0.4) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 75% 55%, rgba(232, 160, 180, 0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 60% 75%, rgba(237, 228, 216, 0.25) 0%, transparent 100%),
+    radial-gradient(1px 1px at 5% 55%, rgba(237, 228, 216, 0.15) 0%, transparent 100%),
+    radial-gradient(1px 1px at 35% 90%, rgba(240, 192, 80, 0.2) 0%, transparent 100%),
+    radial-gradient(1px 1px at 95% 45%, rgba(192, 132, 252, 0.2) 0%, transparent 100%),
+    radial-gradient(1px 1px at 55% 30%, rgba(237, 228, 216, 0.2) 0%, transparent 100%);
 }
 
+/* Ambient nebula glow */
+.nebula {
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.nebula-1 {
+  top: -10%;
+  left: -10%;
+  width: 50vw;
+  height: 50vw;
+  background: radial-gradient(circle, rgba(147, 51, 234, 0.07) 0%, transparent 70%);
+}
+
+.nebula-2 {
+  bottom: -15%;
+  right: -10%;
+  width: 45vw;
+  height: 45vw;
+  background: radial-gradient(circle, rgba(232, 160, 180, 0.05) 0%, transparent 70%);
+}
+
+.nebula-3 {
+  top: 40%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60vw;
+  height: 30vw;
+  background: radial-gradient(ellipse, rgba(240, 192, 80, 0.03) 0%, transparent 70%);
+}
+
+/* Glass card */
 .glass-card {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 1rem;
+  background: rgba(237, 228, 216, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(237, 228, 216, 0.06);
+  border-radius: 1.25rem;
+}
+
+.glass-card-hover {
+  background: rgba(237, 228, 216, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(237, 228, 216, 0.06);
+  border-radius: 1.25rem;
+  transition: all 0.3s ease;
+}
+
+.glass-card-hover:hover {
+  background: rgba(147, 51, 234, 0.08);
+  border-color: rgba(192, 132, 252, 0.2);
+}
+
+/* Shimmer animation */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.btn-mystic {
+  background: linear-gradient(135deg, var(--color-amethyst) 0%, #a855f7 50%, var(--color-amethyst) 100%);
+  background-size: 200% auto;
+  border-radius: 9999px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  transition: all 0.3s ease;
+}
+
+.btn-mystic:hover {
+  animation: shimmer 2s linear infinite;
+  box-shadow: 0 0 30px rgba(147, 51, 234, 0.3);
+}
+
+/* Divider */
+.mystic-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(192, 132, 252, 0.25), transparent);
+}
+
+/* Stripe Elements custom styling container */
+.stripe-element-container {
+  background: rgba(237, 228, 216, 0.04);
+  border: 1px solid rgba(237, 228, 216, 0.1);
+  border-radius: 0.75rem;
+  padding: 0.875rem 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.stripe-element-container:focus-within {
+  border-color: rgba(192, 132, 252, 0.4);
+}
+
+html {
+  scroll-behavior: smooth;
 }
