@@ -45,9 +45,106 @@ const intentionQ: QuizQuestion = {
   options: ["Love and romance", "Self-understanding", "A major decision", "Healing and closure"],
 };
 
+// ── Soulmate Search shared questions ──
+const letterEnergyQ: QuizQuestion = {
+  id: "letter_energy",
+  question: "Which type of letter feels most magnetic to you?",
+  options: ["Strong consonants (K, M, R)", "Soft vowels (A, E, I)", "Flowing letters (L, S, N)", "Sharp letters (T, D, B)"],
+};
+
+const partnerEnergyQ: QuizQuestion = {
+  id: "partner_energy",
+  question: "What energy do you seek most in a partner?",
+  options: ["Calm and grounded", "Adventurous and free", "Passionate and intense", "Gentle and nurturing"],
+};
+
+const auraFeelQ: QuizQuestion = {
+  id: "aura_feel",
+  question: "When you imagine your soulmate, what energy fills the room?",
+  options: ["Warm golden light", "Cool silver radiance", "Deep violet mystery", "Soft rose warmth"],
+};
+
+const loveLanguageQ: QuizQuestion = {
+  id: "love_language",
+  question: "What is your primary love language?",
+  options: ["Words of affirmation", "Acts of service", "Physical touch", "Quality time"],
+};
+
+const partnerQualityQ: QuizQuestion = {
+  id: "partner_quality",
+  question: "What quality matters most to you in a partner?",
+  options: ["Loyalty and devotion", "Humor and lightness", "Depth and intensity", "Ambition and drive"],
+};
+
+const spiritualPathQ: QuizQuestion = {
+  id: "spiritual_path",
+  question: "How do you connect with your spirituality?",
+  options: ["Through nature and earth rituals", "Through meditation and silence", "Through community and sharing", "Through creative expression"],
+};
+
+const soulCallingQ: QuizQuestion = {
+  id: "soul_calling",
+  question: "What feels like your soul\u2019s deepest calling?",
+  options: ["To heal others", "To create beauty", "To seek truth", "To build something lasting"],
+};
+
+const natureAffinityQ: QuizQuestion = {
+  id: "nature_affinity",
+  question: "What realm of nature do you feel most connected to?",
+  options: ["Forest and earth", "Ocean and water", "Sky and wind", "Desert and fire"],
+};
+
+const partnerDriveQ: QuizQuestion = {
+  id: "partner_drive",
+  question: "What kind of ambition attracts you most?",
+  options: ["Creative visionary", "Helping professions", "Entrepreneurial spirit", "Academic and analytical"],
+};
+
+const seasonQ: QuizQuestion = {
+  id: "season_feeling",
+  question: "Which season feels most aligned with new beginnings for you?",
+  options: ["Spring \u2014 fresh starts", "Summer \u2014 peak energy", "Autumn \u2014 transformation", "Winter \u2014 quiet magic"],
+};
+
+const settingQ: QuizQuestion = {
+  id: "setting_attraction",
+  question: "Where do you feel most open to love?",
+  options: ["In nature", "At a gathering or event", "Through everyday life", "When traveling"],
+};
+
+const firstImpressionQ: QuizQuestion = {
+  id: "first_impression",
+  question: "What kind of first impression do you imagine?",
+  options: ["Eyes meet across a crowd", "A chance conversation", "A mutual friend connection", "An unexpected encounter"],
+};
+
+const dejaVuQ: QuizQuestion = {
+  id: "deja_vu",
+  question: "Have you ever felt an unexplainable connection to a stranger?",
+  options: ["Yes, powerfully", "Once or twice", "I\u2019m not sure", "Not yet but I believe it\u2019s possible"],
+};
+
+const karmicLessonQ: QuizQuestion = {
+  id: "karmic_lesson",
+  question: "What karmic pattern have you been working to release?",
+  options: ["Fear of abandonment", "Difficulty trusting", "Giving too much of yourself", "Holding back your love"],
+};
+
 // Questions mapped by reading ID
 export const questionsByReading: Record<string, QuizQuestion[]> = {
   "soulmate-sketch": [sunSignQ, personalityQ, elementQ, soulWindowQ],
+
+  "soulmate-name-initials": [sunSignQ, elementQ, letterEnergyQ],
+  "soulmate-zodiac": [sunSignQ, elementQ, partnerEnergyQ],
+  "soulmate-aura": [sunSignQ, elementQ, auraFeelQ],
+  "soulmate-personality": [sunSignQ, partnerQualityQ, loveLanguageQ],
+  "soulmate-spiritual": [sunSignQ, elementQ, spiritualPathQ, soulCallingQ],
+  "soulmate-spirit-animal": [elementQ, natureAffinityQ, soulWindowQ],
+  "soulmate-career": [sunSignQ, partnerDriveQ, elementQ],
+  "soulmate-impact": [sunSignQ, soulCallingQ, personalityQ],
+  "soulmate-when-where": [sunSignQ, seasonQ, settingQ],
+  "soulmate-meeting-details": [sunSignQ, firstImpressionQ, soulWindowQ],
+  "soulmate-past-life": [sunSignQ, dejaVuQ, karmicLessonQ],
 
   "future-baby-sketch": [
     sunSignQ,

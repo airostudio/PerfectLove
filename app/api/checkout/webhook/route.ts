@@ -26,9 +26,13 @@ export async function POST(req: NextRequest) {
     const email = session.customer_details?.email;
 
     if (email) {
-      const deliveryAt = new Date(
-        Date.now() + 24 * 60 * 60 * 1000
-      ).toISOString();
+      const deliveryType = metadata.delivery_type || "standard";
+      const delayMs =
+        deliveryType === "express"
+          ? 30 * 60 * 1000          // 30 minutes
+          : 24 * 60 * 60 * 1000;   // 24 hours
+
+      const deliveryAt = new Date(Date.now() + delayMs).toISOString();
 
       await getSupabase().from("orders").insert({
         email,
@@ -37,6 +41,7 @@ export async function POST(req: NextRequest) {
         stripe_session_id: session.id,
         amount_paid: session.amount_total,
         status: "processing",
+        delivery_type: deliveryType,
         delivery_at: deliveryAt,
       });
     }

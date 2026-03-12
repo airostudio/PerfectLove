@@ -170,6 +170,118 @@ export function getTeaser(
       ],
       hookLine: "Your full heartbreak healing reading is ready.",
     },
+
+    // ── Soulmate Search ──
+    "soulmate-name-initials": {
+      headline: "The initials are surfacing\u2026",
+      preview: `As a ${sign} with ${element} energy, the letters tied to your soulmate carry a specific vibration. You may have already seen them \u2014 on a street sign, a coffee cup, a name in a dream. The universe has been leaving clues.`,
+      blurredLines: [
+        "The first initial is likely the letter \u2588\u2588, associated with \u2588\u2588\u2588\u2588\u2588\u2588\u2588 energy and...",
+        "The second initial connects to \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588 and will appear in the most unexpected...",
+        "Together these initials form a pattern that tends to surface when you are feeling...",
+      ],
+      hookLine: "Your soulmate\u2019s full initials, appearance guidance, and timing signs are ready.",
+    },
+    "soulmate-zodiac": {
+      headline: "A sign is emerging\u2026",
+      preview: `Your ${element} resonance and ${sign} placement create a magnetic pull toward a very specific zodiac energy. The traits of this match will both challenge and complete you in ways you haven\u2019t experienced before.`,
+      blurredLines: [
+        "Their sun sign is \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588 \u2014 meaning their core energy is deeply \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588 and...",
+        "Their rising sign suggests they first appear as \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588, which draws you in by...",
+        "In love, this sign shows \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588 which balances your \u2588\u2588\u2588\u2588\u2588 nature perfectly...",
+      ],
+      hookLine: "Your soulmate\u2019s full zodiac profile, traits, and compatibility breakdown are ready.",
+    },
+    "soulmate-aura": {
+      headline: "An aura surrounds them\u2026",
+      preview: `Every soul radiates a unique energetic field. The aura of the one drawn to your ${sign} energy carries colors and frequencies that your own energy is already calling in \u2014 you can feel it even now.`,
+      blurredLines: [
+        "Their dominant aura color is \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588, which means they carry \u2588\u2588\u2588\u2588\u2588\u2588 healing energy...",
+        "When you meet, your combined energies will create a \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588 field that others notice...",
+        "Their aura also reveals they are currently in a period of \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588, which means...",
+      ],
+      hookLine: "Your soulmate\u2019s full aura description, energy layers, and compatibility reading are ready.",
+    },
+    "soulmate-personality": {
+      headline: "Their character is forming\u2026",
+      preview: `Your ${sign} soul and ${element} nature call in someone with very specific traits. This person\u2019s personality has a signature you will recognize immediately \u2014 because it reflects exactly what you need most to grow.`,
+      blurredLines: [
+        "Their most prominent trait is \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588, which shows up as \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588 in daily life...",
+        "In relationships they tend to \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588, which is exactly what your heart has been seeking...",
+        "Their shadow side involves \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588, which is something you are uniquely equipped to help them...",
+      ],
+      hookLine: "Your soulmate\u2019s full personality profile and relationship dynamics are ready.",
+    },
+    "soulmate-spiritual": {
+      headline: "A soul aligned with yours\u2026",
+      preview: `Spiritual compatibility is the invisible thread that makes love last. The soul drawn to your ${element} energy carries a spiritual orientation that will both mirror and expand your own path in ways you\u2019ve longed for.`,
+      blurredLines: [
+        "Their spiritual practice centers around \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588, which aligns deeply with your own \u2588\u2588\u2588\u2588\u2588 path...",
+        "They hold beliefs about \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588 that will resonate like a long-forgotten truth...",
+        "Together your combined spiritual paths point toward \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588, a shared calling that will...",
+      ],
+      hookLine: "Your soulmate\u2019s full spiritual alignment and shared path reading is ready.",
+    },
+    "soulmate-spirit-animal": {
+      headline: "Their spirit guide appears\u2026",
+      preview: `Every soul is guided by an animal archetype that shapes their instincts, strengths, and way of loving. The spirit animal of the one meant for you is revealing itself now \u2014 and its message is significant.`,
+      blurredLines: [
+        "Their spirit animal is the \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588, carrying the energy of \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588 and fierce...",
+        "This totem means they approach love with \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588, instinctively protecting and...",
+        "The message from this spirit guide for your connection is \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588 \u2014 a call to...",
+      ],
+      hookLine: "Your soulmate\u2019s full spirit animal profile, totem meaning, and love style are ready.",
+    },
+    "soulmate-career": {
+      headline: "Their work reflects their soul\u2026",
+      preview: `Career and purpose are deeply tied to identity. The person drawn to your ${sign} energy follows a path shaped by ${element} values \u2014 and the way they work mirrors exactly how they love.`,
+      blurredLines: [
+        "They are likely drawn to \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588 as a career field, specifically working with \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588...",
+        "Their work ethic is characterized by \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588 and a deep need to feel \u2588\u2588\u2588\u2588\u2588\u2588 in...",
+        "Financially they approach security with \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588 which complements your own \u2588\u2588\u2588\u2588\u2588 style...",
+      ],
+      hookLine: "Your soulmate\u2019s full career profile, lifestyle match, and financial values are ready.",
+    },
+    "soulmate-impact": {
+      headline: "They carry a mission\u2026",
+      preview: `Some souls don\u2019t just come to love you \u2014 they come to amplify your purpose. The person destined for your ${sign} energy carries a mission that will intertwine with yours in ways that feel almost too meaningful to be coincidence.`,
+      blurredLines: [
+        "Their core mission involves \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588, which connects directly to your own deeper calling...",
+        "Together your combined impact on others will be \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588, especially in the realm of...",
+        "The legacy you could build together is centered around \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588, a gift that outlasts you...",
+      ],
+      hookLine: "Your soulmate\u2019s full impact, mission, and shared legacy reading is ready.",
+    },
+    "soulmate-when-where": {
+      headline: "The meeting is mapped\u2026",
+      preview: `The universe doesn\u2019t leave sacred encounters to chance. Based on your ${sign} chart and ${element} timing cycles, the window for your soulmate encounter has already been identified \u2014 and it\u2019s closer than you think.`,
+      blurredLines: [
+        "The most likely timeframe is \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588, specifically during a period when you are...",
+        "The type of setting will involve \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588 \u2014 somewhere you feel naturally \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588...",
+        "A specific sign to watch for is \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588, which will appear in the days just before you...",
+      ],
+      hookLine: "Your full when and where meeting guide, timing window, and cosmic signs are ready.",
+    },
+    "soulmate-meeting-details": {
+      headline: "The details are shimmering in\u2026",
+      preview: `Every great love story has a first moment \u2014 a specific detail that makes it unforgettable. Your cosmic profile reveals the texture of that first encounter in surprising and beautiful specificity.`,
+      blurredLines: [
+        "The first thing you\u2019ll notice is their \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588 before they even speak a word...",
+        "The conversation will begin with \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588 and shift to something unexpectedly...",
+        "A small but significant detail about the moment \u2014 the \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588 \u2014 will make you certain...",
+      ],
+      hookLine: "Your full first meeting story, details, and recognition signs are ready.",
+    },
+    "soulmate-past-life": {
+      headline: "You have met before\u2026",
+      preview: `The pull you feel toward the idea of a soulmate isn\u2019t just hope \u2014 it may be recognition. As a ${sign}, your soul carries karmic imprints from a previous connection that is actively seeking resolution and reunion in this lifetime.`,
+      blurredLines: [
+        "In your most significant past life together you were \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588 and they played the role of...",
+        "The unresolved bond between you involves \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588, which explains the \u2588\u2588\u2588\u2588\u2588\u2588 you feel...",
+        "The karmic gift you\u2019re bringing each other this time is \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588 \u2014 a healing that will...",
+      ],
+      hookLine: "Your full past life connection, karmic bond, and reunion reading is ready.",
+    },
   };
 
   return (

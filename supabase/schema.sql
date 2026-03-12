@@ -10,9 +10,15 @@ create table public.orders (
   stripe_session_id text not null unique,
   amount_paid integer not null default 0,
   status text not null default 'processing' check (status in ('processing', 'delivered')),
+  delivery_type text not null default 'standard' check (delivery_type in ('standard', 'express')),
   delivery_at timestamptz not null,
+  image_url text,                     -- AI-generated sketch URL (soulmate-sketch only)
   created_at timestamptz default now() not null
 );
+
+-- Migration for existing databases: run these if table already exists
+-- alter table public.orders add column if not exists delivery_type text not null default 'standard' check (delivery_type in ('standard', 'express'));
+-- alter table public.orders add column if not exists image_url text;
 
 -- 2. Index for the cron job query (finds orders ready to deliver)
 create index idx_orders_delivery on public.orders (status, delivery_at)

@@ -64,8 +64,7 @@ export default function ReadingQuizPage() {
           ) : (
             <TeaserPreview
               key="teaser"
-              readingId={readingId}
-              readingTitle={reading.title}
+              reading={reading}
               answers={answers}
             />
           )}
