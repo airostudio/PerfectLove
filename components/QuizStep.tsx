@@ -43,10 +43,12 @@ export default function QuizStep({
         {question.question}
       </h2>
 
-      <div className="grid gap-3">
+      <div className="grid gap-3" role="list">
         {question.options.map((option) => (
           <motion.button
             key={option}
+            role="listitem"
+            aria-label={option}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => onAnswer(question.id, option)}

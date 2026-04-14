@@ -57,12 +57,17 @@ export default function AuthPage() {
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              <label htmlFor="email" className="sr-only">
+                Email address
+              </label>
               <input
+                id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="your@email.com"
                 required
+                autoComplete="email"
                 className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-bone placeholder:text-ash/50 focus:outline-none focus:border-orchid/40 transition-colors text-sm"
               />
 

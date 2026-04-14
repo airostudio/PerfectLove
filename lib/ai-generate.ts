@@ -58,18 +58,21 @@ export async function generateSoulmateSketch(
     const client = getClient();
     const prompt = buildSketchPrompt(answers);
 
-    const response = await client.images.generate({
-      model: "dall-e-3",
-      prompt,
-      n: 1,
-      size: "1024x1024",
-      quality: "standard",
-      style: "vivid",
-    });
+    const response = await client.images.generate(
+      {
+        model: "dall-e-3",
+        prompt,
+        n: 1,
+        size: "1024x1024",
+        quality: "standard",
+        style: "vivid",
+      },
+      { timeout: 60_000 }
+    );
 
     return response.data?.[0]?.url ?? null;
   } catch (err) {
-    console.error("DALL-E generation failed:", err);
+    console.error("DALL-E generation failed:", err instanceof Error ? err.message : err);
     return null;
   }
 }

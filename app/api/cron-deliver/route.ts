@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { Resend } from "resend";
@@ -99,11 +100,64 @@ async function buildEmail(order: {
   return { subject, html: wrap(body) };
 }
 
+// ── Process a single order ────────────────────────────────────────────────────
+
+async function processOrder(
+  order: Record<string, unknown>,
+  resend: Resend
+): Promise<void> {
+  const orderId = order.id as string;
+  const readingId = order.reading_id as string;
+
+  let image_url: string | null = null;
+  if (readingId === "soulmate-sketch") {
+    image_url = await generateSoulmateSketch(order.answers as Record<string, string>);
+  }
+
+  const { subject, html } = await buildEmail({
+    ...order as Parameters<typeof buildEmail>[0],
+    image_url,
+  });
+
+  const { error: emailError } = await resend.emails.send({
+    from: "PerfectLove <readings@perfectlove.app>",
+    to: order.email as string,
+    subject,
+    html,
+  });
+
+  if (emailError) {
+    throw new Error(`Email send failed: ${emailError.message}`);
+  }
+
+  const { error: updateError } = await getSupabase()
+    .from("orders")
+    .update({ status: "delivered", image_url })
+    .eq("id", orderId);
+
+  if (updateError) {
+    throw new Error(`DB update failed: ${updateError.message}`);
+  }
+}
+
 // ── Cron handler ─────────────────────────────────────────────────────────────
 
 export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret) {
+    console.error("CRON_SECRET is not set");
+    return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
+  }
+
+  const authHeader = req.headers.get("authorization") ?? "";
+  const expected = Buffer.from(`Bearer ${cronSecret}`);
+  const actual = Buffer.from(authHeader);
+
+  const isAuthorized =
+    actual.length === expected.length &&
+    timingSafeEqual(actual, expected);
+
+  if (!isAuthorized) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -116,38 +170,34 @@ export async function GET(req: NextRequest) {
     .lte("delivery_at", new Date().toISOString());
 
   if (error) {
+    console.error("Cron: failed to fetch orders:", error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  const batch = orders ?? [];
+
+  // Process all orders in parallel; log failures individually without stopping others
+  const results = await Promise.allSettled(
+    batch.map((order) => processOrder(order, resend))
+  );
+
   let delivered = 0;
+  const failures: string[] = [];
 
-  for (const order of orders ?? []) {
-    try {
-      // Generate DALL-E sketch image for soulmate-sketch orders
-      let image_url: string | null = null;
-      if (order.reading_id === "soulmate-sketch") {
-        image_url = await generateSoulmateSketch(order.answers);
-      }
-
-      const { subject, html } = await buildEmail({ ...order, image_url });
-
-      await resend.emails.send({
-        from: "PerfectLove <readings@perfectlove.app>",
-        to: order.email,
-        subject,
-        html,
-      });
-
-      await getSupabase()
-        .from("orders")
-        .update({ status: "delivered", image_url })
-        .eq("id", order.id);
-
+  results.forEach((result, i) => {
+    if (result.status === "fulfilled") {
       delivered++;
-    } catch {
-      // Continue processing remaining orders
+    } else {
+      const orderId = batch[i]?.id ?? "unknown";
+      const reason = result.reason instanceof Error ? result.reason.message : String(result.reason);
+      console.error(`Cron: order ${orderId} failed: ${reason}`);
+      failures.push(orderId);
     }
-  }
+  });
 
-  return NextResponse.json({ delivered });
+  return NextResponse.json({
+    delivered,
+    failed: failures.length,
+    ...(failures.length > 0 && { failedIds: failures }),
+  });
 }

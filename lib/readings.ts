@@ -320,6 +320,8 @@ export const readings: Reading[] = [
   },
 ];
 
+const readingsMap = new Map<string, Reading>(readings.map((r) => [r.id, r]));
+
 export function getReading(id: string): Reading | undefined {
-  return readings.find((r) => r.id === id);
+  return readingsMap.get(id);
 }
