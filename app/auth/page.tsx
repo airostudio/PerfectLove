@@ -17,8 +17,12 @@ export default function AuthPage() {
     setError("");
 
     const supabase = getSupabaseBrowser();
-    const siteUrl =
-      process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
+    const siteUrl = process.env.NEXT_PUBLIC_APP_URL;
+    if (!siteUrl) {
+      setError("Site URL is not configured. Please contact support.");
+      setLoading(false);
+      return;
+    }
     const { error: authError } = await supabase.auth.signInWithOtp({
       email,
       options: {
