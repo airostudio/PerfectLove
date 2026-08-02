@@ -10,37 +10,38 @@ function getClient(): OpenAI {
 }
 
 function buildSketchPrompt(answers: Record<string, string>): string {
-  const sign = answers.sun_sign || "Pisces";
   const element = answers.element || "Water";
   const personality = answers.personality || "Introverted depth";
   const soulWindow = answers.soul_window || "The Gaze";
 
-  const elementDescriptions: Record<string, string> = {
-    Earth: "grounded, warm, earthy features — strong jaw, brown or green eyes, calm and steady presence",
-    Air: "ethereal, bright features — sharp cheekbones, light eyes that sparkle with curiosity and wit",
-    Fire: "magnetic, passionate features — expressive eyes, defined brow, a smile that commands attention",
-    Water: "soft, intuitive features — dreamy eyes, gentle expression, an otherworldly depth in their gaze",
+  const elementMood: Record<string, string> = {
+    Earth: "a calm, grounded stillness — as though rooted deeply in the earth",
+    Air: "a light, restless energy — as though always about to say something surprising",
+    Fire: "an intense, magnetic pull — a presence that fills the room without trying",
+    Water: "a quiet, fathomless depth — the kind of stillness that holds oceans",
   };
 
-  const soulWindowDetail =
+  const featureHint =
     soulWindow === "The Smile"
-      ? "a warm, captivating smile that draws you in"
-      : "deep, soulful eyes that seem to see right through you";
+      ? "the suggestion of a soft curve at the corner of the lips"
+      : "the faint impression of eyes that hold more than they reveal";
 
-  const personalityDetail =
+  const presenceHint =
     personality === "Introverted depth"
-      ? "quiet strength and mystery, someone who holds secrets behind their eyes"
-      : "radiant warmth and presence, someone whose energy lights up the room";
+      ? "their face half-turned, as if emerging from shadow"
+      : "their face tilted slightly upward, open and luminous";
 
   return (
-    `A mystical, romantic hand-drawn pencil portrait of a soulmate figure. ` +
-    `Their energy is ${sign} and ${element}. ` +
-    `They have ${elementDescriptions[element] || "striking, memorable features"}. ` +
-    `Their defining feature is ${soulWindowDetail}. ` +
-    `They exude ${personalityDetail}. ` +
-    `Style: delicate pencil sketch with soft watercolor washes, celestial starfield background, ` +
-    `glowing violet and gold accents, spiritual and romantic atmosphere. ` +
-    `No text, no labels, no words. Portrait only, dreamy and mystical.`
+    `A fine-art charcoal and graphite pencil portrait, strictly monochrome, no colour whatsoever. ` +
+    `The figure is deliberately vague — an impression rather than a likeness. ` +
+    `${presenceHint}. ` +
+    `The only distinct detail is ${featureHint}. ` +
+    `They carry ${elementMood[element] || "a quiet, otherworldly presence"}. ` +
+    `Medium: heavy charcoal strokes blended into soft graphite — deep blacks fading into pale grey paper tone. ` +
+    `The edges of the face dissolve into loose, unfinished sketch marks. ` +
+    `Background: sparse diagonal hatching that fades to white. ` +
+    `Atmosphere: intimate, mysterious, timeless — like a page torn from a lover's sketchbook. ` +
+    `No text, no labels, no watermarks, no colour. Monochrome charcoal portrait only.`
   );
 }
 
@@ -92,7 +93,7 @@ export async function generateSoulmateSketch(
         n: 1,
         size: "1024x1024",
         quality: "standard",
-        style: "vivid",
+        style: "natural",
       },
       { timeout: 60_000 }
     );
