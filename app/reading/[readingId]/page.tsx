@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import { AnimatePresence } from "framer-motion";
 import { getQuestionsForReading } from "@/lib/questions";
-import { readings } from "@/lib/readings";
+import { getReading } from "@/lib/readings";
 import QuizStep from "@/components/QuizStep";
 import TeaserPreview from "@/components/TeaserPreview";
 import Link from "next/link";
@@ -13,7 +13,7 @@ export default function ReadingQuizPage() {
   const params = useParams();
   const readingId = params.readingId as string;
   const questions = getQuestionsForReading(readingId);
-  const reading = readings.find((r) => r.id === readingId);
+  const reading = getReading(readingId);
 
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});

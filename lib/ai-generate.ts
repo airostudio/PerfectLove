@@ -9,9 +9,6 @@ function getClient(): OpenAI {
   return _client;
 }
 
-/**
- * Build a DALL-E 3 prompt for the soulmate sketch from quiz answers.
- */
 function buildSketchPrompt(answers: Record<string, string>): string {
   const sign = answers.sun_sign || "Pisces";
   const element = answers.element || "Water";
@@ -47,16 +44,46 @@ function buildSketchPrompt(answers: Record<string, string>): string {
   );
 }
 
+function buildFutureBabyPrompt(answers: Record<string, string>): string {
+  const sign = answers.sun_sign || "Cancer";
+  const partnerSign = answers.partner_sign || "Pisces";
+  const element = answers.element || "Water";
+  const babyTrait = answers.baby_trait || "Kindness and warmth";
+
+  const traitDetail: Record<string, string> = {
+    "Courage and fire": "bold, bright eyes full of fierce curiosity and courage",
+    "Kindness and warmth": "soft, warm eyes and a gentle, open smile full of tenderness",
+    "Curiosity and wonder": "wide, sparkling eyes brimming with wonder and delight",
+    "Calm and wisdom": "serene, knowing eyes — an old soul in a tiny face",
+  };
+
+  return (
+    `A tender, dreamy hand-drawn sketch portrait of a baby or young child. ` +
+    `This child carries the combined energy of ${sign} and ${partnerSign} parents, with ${element} resonance. ` +
+    `They have ${traitDetail[babyTrait] || "bright, innocent eyes full of wonder"}. ` +
+    `Style: soft pencil sketch with gentle watercolor washes, warm golden light, ` +
+    `delicate celestial details — tiny stars and moons in the background. ` +
+    `The portrait feels sacred, intimate, and full of love. ` +
+    `No text, no labels, no words. Portrait only, soft and ethereal.`
+  );
+}
+
 /**
- * Generate a soulmate sketch image using DALL-E 3.
+ * Generate a sketch image using DALL-E 3.
+ * Supports soulmate-sketch and future-baby-sketch reading types.
  * Returns the image URL (hosted by OpenAI, valid ~1 hour) or null on failure.
  */
 export async function generateSoulmateSketch(
-  answers: Record<string, string>
+  answers: Record<string, string>,
+  readingId: string = "soulmate-sketch"
 ): Promise<string | null> {
+  const prompt =
+    readingId === "future-baby-sketch"
+      ? buildFutureBabyPrompt(answers)
+      : buildSketchPrompt(answers);
+
   try {
     const client = getClient();
-    const prompt = buildSketchPrompt(answers);
 
     const response = await client.images.generate(
       {

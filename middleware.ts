@@ -1,56 +1,50 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
 
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
+function isAdminAuthenticated(req: NextRequest): boolean {
+  const secret = process.env.ADMIN_SECRET;
+  if (!secret) return false;
+  const token = req.cookies.get("admin_token")?.value ?? "";
+  return token.length > 0 && timingSafeEqual(token, secret);
+}
+
 export async function middleware(req: NextRequest) {
-  let res = NextResponse.next({ request: req });
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return req.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            req.cookies.set(name, value)
-          );
-          res = NextResponse.next({ request: req });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            res.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
-
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
   const { pathname } = req.nextUrl;
 
-  // Stripe redirects unauthenticated users to /reading/success — must stay public
-  if (pathname === "/reading/success") {
-    return res;
+  // Login page and auth endpoint are public
+  if (pathname === "/admin/login" || pathname === "/api/admin/auth") {
+    return NextResponse.next();
   }
 
-  // Already signed in → skip the auth page
-  if (pathname === "/auth" && session) {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
+  // All /admin and /api/admin routes require a valid admin_token cookie
+  if (pathname.startsWith("/admin") || pathname.startsWith("/api/admin")) {
+    if (!isAdminAuthenticated(req)) {
+      if (pathname.startsWith("/api/")) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      return NextResponse.redirect(new URL("/admin/login", req.url));
+    }
   }
 
-  // Protected routes — redirect to auth if no session
-  if (!session) {
-    const loginUrl = new URL("/auth", req.url);
-    loginUrl.searchParams.set("next", pathname);
-    return NextResponse.redirect(loginUrl);
-  }
-
-  return res;
+  // User auth protection disabled during development — re-enable here when ready
+  return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/reading/:path*", "/auth"],
+  matcher: [
+    "/admin/:path*",
+    "/api/admin/:path*",
+    "/dashboard/:path*",
+    "/reading/:path*",
+    "/auth",
+  ],
 };

@@ -7,8 +7,6 @@ import { validateEnv } from "@/lib/env";
 const EXPRESS_PRICE_CENTS = 1499; // $14.99 — express 30-min delivery
 
 export async function POST(req: NextRequest) {
-  validateEnv();
-
   // Rate limit by IP
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
   const { allowed } = checkRateLimit(`checkout:${ip}`);
@@ -20,6 +18,8 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    validateEnv();
+
     const body = await req.json().catch(() => null);
 
     // Validate request body
@@ -45,7 +45,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    if (!appUrl) {
+      return NextResponse.json({ error: "NEXT_PUBLIC_APP_URL is not configured" }, { status: 500 });
+    }
     const readingId = answersObj.reading_id as string;
     const isExpress = deliveryType === "express";
 
@@ -65,8 +68,9 @@ export async function POST(req: NextRequest) {
       : `PerfectLove — ${readingName}`;
 
     const answersJson = JSON.stringify(answers);
-    if (answersJson.length > 450_000) {
-      return NextResponse.json({ error: "Request payload too large" }, { status: 400 });
+    if (answersJson.length > 490) {
+      // Stripe metadata values are capped at 500 characters
+      return NextResponse.json({ error: "Quiz answers too large to process. Please try again." }, { status: 400 });
     }
 
     const session = await getStripe().checkout.sessions.create({
