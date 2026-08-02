@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
 
       // Record bundle as a special order row
       const now = new Date().toISOString();
-      await getSupabase()
+      const { error: bundleInsertError } = await getSupabase()
         .from("orders")
         .insert({
           email: customerEmail,
@@ -84,6 +84,11 @@ export async function POST(req: NextRequest) {
           delivery_type: "standard",
           delivery_at: now,
         });
+
+      if (bundleInsertError) {
+        console.error(`Webhook: failed to insert bundle order for session ${session.id}:`, bundleInsertError.message);
+        return NextResponse.json({ error: "Failed to record bundle purchase" }, { status: 500 });
+      }
       return NextResponse.json({ received: true });
     }
 
