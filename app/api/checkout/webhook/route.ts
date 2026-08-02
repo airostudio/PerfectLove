@@ -61,7 +61,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true });
     }
 
-    const deliveryType = metadata.delivery_type || "standard";
+    const rawDeliveryType = metadata.delivery_type;
+    const deliveryType: "standard" | "express" =
+      rawDeliveryType === "express" ? "express" : "standard";
     const delayMs =
       deliveryType === "express"
         ? 30 * 60 * 1000          // 30 minutes
