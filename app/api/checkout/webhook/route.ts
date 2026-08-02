@@ -9,7 +9,10 @@ function isValidEmail(email: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
-  validateEnv();
+  try { validateEnv(); } catch (err) {
+    console.error("Webhook: env validation failed:", err instanceof Error ? err.message : err);
+    return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
+  }
 
   const body = await req.text();
   const signature = req.headers.get("stripe-signature") ?? "";

@@ -4,11 +4,12 @@ const csp = [
   "default-src 'self'",
   // Next.js requires unsafe-inline for inline scripts during hydration
   "script-src 'self' 'unsafe-inline' https://js.stripe.com",
-  // Tailwind CSS and Framer Motion inject inline styles
-  "style-src 'self' 'unsafe-inline'",
+  // Tailwind CSS and Framer Motion inject inline styles; Google Fonts stylesheet
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   // DALL-E 3 images are served from Azure Blob Storage via OpenAI
   "img-src 'self' data: blob: https://oaidalleapiprodscus.blob.core.windows.net",
-  "font-src 'self'",
+  // Google Fonts serves font files from fonts.gstatic.com
+  "font-src 'self' https://fonts.gstatic.com",
   "frame-src https://js.stripe.com",
   "connect-src 'self' https://api.stripe.com https://*.supabase.co wss://*.supabase.co",
   "object-src 'none'",

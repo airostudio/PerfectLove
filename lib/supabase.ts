@@ -20,6 +20,8 @@ export interface OrderRecord {
   stripe_session_id: string;
   amount_paid: number;
   status: "processing" | "delivered";
+  delivery_type: "standard" | "express";
   delivery_at: string;
+  image_url: string | null;
   created_at: string;
 }
