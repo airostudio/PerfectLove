@@ -24,14 +24,18 @@ export function getTeaser(
 
   const teasers: Record<string, TeaserContent> = {
     "soulmate-sketch": {
-      headline: "We see someone...",
-      preview: `Based on your ${sign} energy and ${element} resonance, we've identified a strong romantic imprint in your chart. The soul drawn to yours carries a presence that will feel instantly familiar.`,
+      headline: answers.soul_window === "The Smile"
+        ? "There is a smile you haven’t seen yet…"
+        : "There are eyes you haven’t met yet…",
+      preview: answers.personality === "Introverted depth"
+        ? `Your ${sign} energy carries a quiet depth that most people never reach. The soul drawn to yours matches that depth — they won't rush you, won't overwhelm you, and when you first speak, it will feel less like meeting someone new and more like remembering someone you already knew.`
+        : `Your ${sign} energy radiates warmth that calls in its equal. The soul drawn to yours carries the same radiance — the kind of person whose presence in a room you notice before you see their face. When you meet, there will be no awkward beginning. Just the feeling of: oh, there you are.`,
       blurredLines: [
-        "Their most striking feature is their ███████ which reflects...",
-        "You'll likely meet when ████████████ during a period of...",
-        "The connection will feel like ██████████ from the very first...",
+        `Their ${answers.soul_window === "The Smile" ? "smile" : "eyes"} will be the first thing you notice — ████████ in a way that feels immediately...`,
+        `The ${element} resonance in your chart points to someone who █████████ rather than fills silence with...`,
+        `The sign that it’s them: a very specific moment involving ████████ that you will recognise because...`,
       ],
-      hookLine: "Your full soulmate sketch and detailed portrait are ready.",
+      hookLine: "Your soulmate portrait and full recognition guide are ready.",
     },
     "future-baby-sketch": {
       headline: "A little soul is waiting...",

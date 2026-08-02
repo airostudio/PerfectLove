@@ -80,8 +80,10 @@ export async function buildEmail(
   if (reading_id === "soulmate-sketch") {
     const ai = await generateReadingContent("soulmate-sketch", answers);
     const imageBlock = image_url
-      ? `<div style="text-align:center; margin-bottom:28px;">
-           <img src="${image_url}" alt="Your Soulmate Sketch" style="max-width:100%; border-radius:10px; border:1px solid #2d1f45;" />
+      ? `<div style="text-align:center; margin:0 0 32px;">
+           <p style="font-size:10px; letter-spacing:0.35em; text-transform:uppercase; color:#7a6d8a; margin:0 0 14px;">Your Portrait — Channelled from Your Cosmic Profile</p>
+           <img src="${image_url}" alt="Your Soulmate Sketch" style="max-width:100%; border-radius:12px; border:1px solid #2d1f45; box-shadow:0 4px 32px rgba(0,0,0,0.5);" />
+           <p style="font-size:11px; color:#4a3f5a; margin:10px 0 0; font-style:italic;">Charcoal &amp; graphite — rendered from your ${sign} energy and ${element} resonance</p>
          </div>`
       : "";
 
@@ -89,10 +91,12 @@ export async function buildEmail(
     if (ai) {
       body += p(ai.intro);
       for (const s of ai.sections) body += h2(s.heading) + p(s.content);
-      body += `<p style="font-size:14px; font-style:italic; color:#c084fc; margin:24px 0 0;">${ai.closing}</p>`;
+      body += `<div style="background:#110820; border:1px solid #2d1f45; border-radius:10px; padding:20px 24px; margin:28px 0 0;">
+        <p style="font-size:13px; font-style:italic; color:#c084fc; margin:0; line-height:1.7;">${ai.closing}</p>
+      </div>`;
     } else {
       body += p(`Based on your <strong>${sign}</strong> energy and <strong>${element}</strong> resonance, this portrait channels the soul drawn to yours.`);
-      body += p("They carry a quiet strength — the kind that makes you feel seen without needing to explain yourself. Keep this image close. You'll recognize them when the moment comes.");
+      body += p("They carry a quiet strength — the kind that makes you feel seen without needing to explain yourself. Keep this image close. You'll recognise them when the moment comes.");
     }
     return { subject, html: wrap(body) };
   }
