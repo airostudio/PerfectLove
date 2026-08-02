@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
 import { getReading } from "@/lib/readings";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -97,6 +98,10 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ url: session.url });
   } catch (err: unknown) {
+    if (err instanceof Stripe.errors.StripeError) {
+      console.error("Stripe error:", err.type, err.message);
+      return NextResponse.json({ error: `Stripe error: ${err.message}` }, { status: 500 });
+    }
     console.error("Checkout error:", err instanceof Error ? err.message : err);
     return NextResponse.json({ error: "Failed to create checkout session" }, { status: 500 });
   }
