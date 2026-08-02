@@ -1,19 +1,60 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
 import { getReading } from "@/lib/readings";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { validateEnv } from "@/lib/env";
 
 const EXPRESS_PRICE_CENTS = 1499; // $14.99 — express 30-min delivery
 
 export async function POST(req: NextRequest) {
+  validateEnv();
+
+  // Rate limit by IP
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const { allowed } = checkRateLimit(`checkout:${ip}`);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      { status: 429 }
+    );
+  }
+
   try {
-    const { answers, deliveryType } = await req.json();
+    const body = await req.json().catch(() => null);
+
+    // Validate request body
+    if (!body || typeof body !== "object") {
+      return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    }
+
+    const { answers, deliveryType } = body as Record<string, unknown>;
+
+    if (!answers || typeof answers !== "object" || Array.isArray(answers)) {
+      return NextResponse.json({ error: "answers must be an object" }, { status: 400 });
+    }
+
+    const answersObj = answers as Record<string, unknown>;
+    if (typeof answersObj.reading_id !== "string" || !answersObj.reading_id) {
+      return NextResponse.json({ error: "answers.reading_id is required" }, { status: 400 });
+    }
+
+    if (deliveryType !== undefined && deliveryType !== "standard" && deliveryType !== "express") {
+      return NextResponse.json(
+        { error: "deliveryType must be 'standard' or 'express'" },
+        { status: 400 }
+      );
+    }
+
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    const readingId = answers.reading_id || "unknown";
+    const readingId = answersObj.reading_id as string;
     const isExpress = deliveryType === "express";
 
     const reading = getReading(readingId);
-    const basePrice = reading?.price ?? 699;
-    const price = isExpress ? EXPRESS_PRICE_CENTS : basePrice;
+    if (!reading) {
+      return NextResponse.json({ error: "Invalid reading_id" }, { status: 400 });
+    }
+
+    const price = isExpress ? EXPRESS_PRICE_CENTS : reading.price;
 
     const readingName = readingId
       .replace(/-/g, " ")
@@ -22,6 +63,11 @@ export async function POST(req: NextRequest) {
     const productName = isExpress
       ? `PerfectLove — ${readingName} (Express 30-min Delivery)`
       : `PerfectLove — ${readingName}`;
+
+    const answersJson = JSON.stringify(answers);
+    if (answersJson.length > 450_000) {
+      return NextResponse.json({ error: "Request payload too large" }, { status: 400 });
+    }
 
     const session = await getStripe().checkout.sessions.create({
       mode: "payment",
@@ -37,7 +83,7 @@ export async function POST(req: NextRequest) {
         },
       ],
       metadata: {
-        answers: JSON.stringify(answers),
+        answers: answersJson,
         reading_id: readingId,
         delivery_type: isExpress ? "express" : "standard",
       },
@@ -47,9 +93,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ url: session.url });
   } catch (err: unknown) {
-    const message =
-      err instanceof Error ? err.message : "Failed to create checkout session";
-    console.error("Checkout error:", message);
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("Checkout error:", err instanceof Error ? err.message : err);
+    return NextResponse.json({ error: "Failed to create checkout session" }, { status: 500 });
   }
 }

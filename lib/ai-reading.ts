@@ -332,6 +332,25 @@ Return JSON:
   },
 };
 
+// ── Response validator ────────────────────────────────────────────────────────
+
+function isGeneratedReading(val: unknown): val is GeneratedReading {
+  if (typeof val !== "object" || val === null) return false;
+  const obj = val as Record<string, unknown>;
+  return (
+    typeof obj.intro === "string" &&
+    Array.isArray(obj.sections) &&
+    obj.sections.every(
+      (s: unknown) =>
+        typeof s === "object" &&
+        s !== null &&
+        typeof (s as Record<string, unknown>).heading === "string" &&
+        typeof (s as Record<string, unknown>).content === "string"
+    ) &&
+    typeof obj.closing === "string"
+  );
+}
+
 // ── Generator ─────────────────────────────────────────────────────────────────
 
 export async function generateReadingContent(
@@ -343,22 +362,38 @@ export async function generateReadingContent(
 
   try {
     const client = getClient();
-    const completion = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      temperature: 0.85,
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: config.system },
-        { role: "user", content: config.user(answers) },
-      ],
-    });
+    const completion = await client.chat.completions.create(
+      {
+        model: "gpt-4o-mini",
+        temperature: 0.85,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: config.system },
+          { role: "user", content: config.user(answers) },
+        ],
+      },
+      { timeout: 30_000 }
+    );
 
     const raw = completion.choices[0]?.message?.content;
     if (!raw) return null;
 
-    return JSON.parse(raw) as GeneratedReading;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      console.error(`AI response was not valid JSON for ${readingId}`);
+      return null;
+    }
+
+    if (!isGeneratedReading(parsed)) {
+      console.error(`AI response has unexpected structure for ${readingId}`);
+      return null;
+    }
+
+    return parsed;
   } catch (err) {
-    console.error(`AI reading generation failed for ${readingId}:`, err);
+    console.error(`AI reading generation failed for ${readingId}:`, err instanceof Error ? err.message : err);
     return null;
   }
 }

@@ -4,6 +4,14 @@ import { createServerClient } from "@supabase/ssr";
 export async function GET(req: NextRequest) {
   const { searchParams, origin } = new URL(req.url);
   const code = searchParams.get("code");
+  const errorParam = searchParams.get("error");
+
+  if (errorParam) {
+    const description = searchParams.get("error_description") ?? errorParam;
+    return NextResponse.redirect(
+      `${origin}/auth?error=${encodeURIComponent(description)}`
+    );
+  }
 
   if (code) {
     const response = NextResponse.redirect(`${origin}/dashboard`);
