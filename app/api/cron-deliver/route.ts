@@ -30,18 +30,41 @@ function metaBar(sign: string, element: string, isExpress: boolean): string {
 // ── Reading titles and subjects ───────────────────────────────────────────────
 
 const readingMeta: Record<string, { title: string; subject: (express: boolean) => string }> = {
-  "soulmate-sketch":         { title: "Your Soulmate Sketch",                 subject: (e) => e ? "⚡ Your Soulmate Sketch — Express Delivery" : "✨ Your Soulmate Sketch is Ready" },
-  "soulmate-name-initials":  { title: "Name Initials of Your Soulmate",       subject: () => "✨ The Initials of Your Soulmate — Revealed" },
-  "soulmate-zodiac":         { title: "Zodiac Sign of Your Soulmate",         subject: () => "✨ The Zodiac Sign of Your Soulmate — Revealed" },
-  "soulmate-aura":           { title: "Aura of Your Soulmate",                subject: () => "✨ The Aura of Your Soulmate — Revealed" },
-  "soulmate-personality":    { title: "Personality Traits of Your Soulmate",  subject: () => "✨ The Personality of Your Soulmate — Revealed" },
-  "soulmate-spiritual":      { title: "Spiritual Alignment of Your Soulmate", subject: () => "✨ The Spiritual Alignment of Your Soulmate — Revealed" },
-  "soulmate-spirit-animal":  { title: "Spirit Animal of Your Soulmate",       subject: () => "✨ The Spirit Animal of Your Soulmate — Revealed" },
-  "soulmate-career":         { title: "Job & Career of Your Soulmate",        subject: () => "✨ The Career of Your Soulmate — Revealed" },
-  "soulmate-impact":         { title: "Impact & Mission of Your Soulmate",    subject: () => "✨ The Mission of Your Soulmate — Revealed" },
-  "soulmate-when-where":     { title: "When & Where You'll Meet",             subject: () => "✨ When & Where You'll Meet Your Soulmate" },
-  "soulmate-meeting-details":{ title: "Small Details of Your Meeting",        subject: () => "✨ The Details of Your First Meeting — Revealed" },
-  "soulmate-past-life":      { title: "Past Life Connection",                 subject: () => "✨ Your Past Life Connection — Revealed" },
+  // ── Soulmate Search ──
+  "soulmate-sketch":           { title: "Your Soulmate Sketch",                   subject: (e) => e ? "⚡ Your Soulmate Sketch — Express Delivery" : "✨ Your Soulmate Sketch is Ready" },
+  "soulmate-name-initials":    { title: "Name Initials of Your Soulmate",         subject: () => "✨ The Initials of Your Soulmate — Revealed" },
+  "soulmate-zodiac":           { title: "Zodiac Sign of Your Soulmate",           subject: () => "✨ The Zodiac Sign of Your Soulmate — Revealed" },
+  "soulmate-aura":             { title: "Aura of Your Soulmate",                  subject: () => "✨ The Aura of Your Soulmate — Revealed" },
+  "soulmate-personality":      { title: "Personality Traits of Your Soulmate",    subject: () => "✨ The Personality of Your Soulmate — Revealed" },
+  "soulmate-spiritual":        { title: "Spiritual Alignment of Your Soulmate",   subject: () => "✨ The Spiritual Alignment of Your Soulmate — Revealed" },
+  "soulmate-spirit-animal":    { title: "Spirit Animal of Your Soulmate",         subject: () => "✨ The Spirit Animal of Your Soulmate — Revealed" },
+  "soulmate-career":           { title: "Job & Career of Your Soulmate",          subject: () => "✨ The Career of Your Soulmate — Revealed" },
+  "soulmate-impact":           { title: "Impact & Mission of Your Soulmate",      subject: () => "✨ The Mission of Your Soulmate — Revealed" },
+  "soulmate-when-where":       { title: "When & Where You'll Meet",               subject: () => "✨ When & Where You'll Meet Your Soulmate" },
+  "soulmate-meeting-details":  { title: "Small Details of Your Meeting",          subject: () => "✨ The Details of Your First Meeting — Revealed" },
+  "soulmate-past-life":        { title: "Past Life Connection",                   subject: () => "✨ Your Past Life Connection — Revealed" },
+
+  // ── Sketch Readings ──
+  "future-baby-sketch":        { title: "Your Future Baby Sketch",                subject: (e) => e ? "⚡ Your Future Baby Reading — Express Delivery" : "✨ Your Future Baby Reading is Ready" },
+
+  // ── Astrology & Numerology ──
+  "natal-chart":               { title: "Your Natal Chart Report",                subject: () => "✨ Your Natal Chart Reading is Ready" },
+  "astrocartography":          { title: "Your Astrocartography Report",           subject: () => "✨ Your Astrocartography Reading is Ready" },
+  "numerology":                { title: "Your Numerology Report",                 subject: () => "✨ Your Numerology Reading is Ready" },
+  "compatibility":             { title: "Your Compatibility Reading",             subject: () => "✨ Your Compatibility Reading is Ready" },
+  "complete-astrology-guide":  { title: "Your Complete Astrology Guide",          subject: () => "✨ Your Complete Astrology Guide is Ready" },
+  "2026-forecast":             { title: "Your 2026 Astrological Forecast",        subject: () => "✨ Your 2026 Forecast is Ready" },
+
+  // ── Palmistry ──
+  "palmistry":                 { title: "Your Palmistry Reading",                 subject: () => "✨ Your Palmistry Reading is Ready" },
+
+  // ── Tarot ──
+  "yes-no-tarot":              { title: "Your Yes or No Tarot Reading",           subject: () => "✨ Your Tarot Reading is Ready" },
+  "past-present-future-tarot": { title: "Your Past Present Future Tarot",        subject: () => "✨ Your Tarot Reading is Ready" },
+  "past-love-clarity-tarot":   { title: "Your Past Love Clarity Tarot",          subject: () => "✨ Your Tarot Reading is Ready" },
+  "love-triangle-tarot":       { title: "Your Love Triangle Tarot",              subject: () => "✨ Your Tarot Reading is Ready" },
+  "true-compatibility-tarot":  { title: "Your True Compatibility Tarot",         subject: () => "✨ Your Tarot Reading is Ready" },
+  "heartbreak-healing-tarot":  { title: "Your Heartbreak Healing Tarot",         subject: () => "✨ Your Tarot Reading is Ready" },
 };
 
 // ── Build email from AI-generated content ─────────────────────────────────────
