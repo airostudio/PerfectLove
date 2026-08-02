@@ -50,30 +50,6 @@ Return JSON with this structure:
 }`,
   },
 
-  "future-baby-sketch": {
-    system: `You are a gifted spiritual seer and intuitive who glimpses future children through a parent's cosmic energy.
-Your descriptions feel like a sacred soul introducing itself before arrival — tender, specific, and deeply loving.
-Target audience: women who believe in astrology, spirituality, and soul contracts.
-Tone: tender, mystical, maternal, quietly certain.`,
-    user: (a) => `Write a description of a future baby vision for someone with these details:
-- Sun Sign: ${a.sun_sign}
-- Element: ${a.element}
-- Personality: ${a.personality || "not specified"}
-- What they hope to pass on: ${a.hope_to_pass || "not specified"}
-
-Return JSON with this structure:
-{
-  "intro": "2-3 sentences describing the soul glimpsed and why it chose this person as their parent",
-  "sections": [
-    { "heading": "Their Spirit", "content": "The energy this child carries — their innate personality, how they'll laugh, what will light them up. Based on ${a.element} and ${a.sun_sign} resonance." },
-    { "heading": "How They'll Look", "content": "A tender, specific physical description — hair, eyes, a particular expression or way of holding themselves. Keep it real and sweet." },
-    { "heading": "The Gift They Bring", "content": "What this child is here to teach their parent — the specific lesson or gift their soul is bringing into this family" },
-    { "heading": "The Bond You'll Share", "content": "The specific nature of your relationship — what will make your connection unique and sacred, colored by ${a.hope_to_pass || 'what you most want to give them'}" }
-  ],
-  "closing": "A single tender sentence — a message from this soul to the person reading this, before they arrive"
-}`,
-  },
-
   "soulmate-name-initials": {
     system: `You are a numerologist and cosmic linguist who reveals the name initials of a person's soulmate.
 You derive initials from the person's birth energy, element, and the letter frequencies they're drawn to.
