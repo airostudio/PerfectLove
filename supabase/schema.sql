@@ -30,6 +30,12 @@ create index idx_orders_email on public.orders (email);
 -- 4. Index for looking up orders by reading type
 create index idx_orders_reading on public.orders (email, reading_id);
 
+-- Migration for reading content storage and archive retrieval:
+-- alter table public.orders add column if not exists reading_html text;
+-- alter table public.orders add column if not exists content_expires_at timestamptz;
+-- alter table public.orders add column if not exists archive_stripe_session_id text;
+-- create index if not exists idx_orders_content_expiry on public.orders (email, content_expires_at) where reading_html is not null;
+
 -- 5. Enable Row Level Security (required by Supabase best practices)
 alter table public.orders enable row level security;
 

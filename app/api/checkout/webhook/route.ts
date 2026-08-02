@@ -33,6 +33,28 @@ export async function POST(req: NextRequest) {
     const session = event.data.object as Stripe.Checkout.Session;
     const metadata = session.metadata || {};
 
+    // Handle archive retrieval payment
+    if (metadata.type === "archive_retrieval") {
+      const orderId = metadata.order_id;
+      if (!orderId) {
+        console.error("Webhook: archive_retrieval missing order_id in metadata");
+        return NextResponse.json({ received: true });
+      }
+
+      const newExpiresAt = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString();
+      const { error: archiveUpdateError } = await getSupabase()
+        .from("orders")
+        .update({ content_expires_at: newExpiresAt, archive_stripe_session_id: session.id })
+        .eq("id", orderId);
+
+      if (archiveUpdateError) {
+        console.error(`Webhook: failed to update archive expiry for order ${orderId}:`, archiveUpdateError.message);
+        return NextResponse.json({ error: "Failed to update archive" }, { status: 500 });
+      }
+
+      return NextResponse.json({ received: true });
+    }
+
     // Safe JSON parse of answers
     let answers: Record<string, unknown> = {};
     try {

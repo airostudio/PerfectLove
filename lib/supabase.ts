@@ -24,4 +24,7 @@ export interface OrderRecord {
   delivery_at: string;
   image_url: string | null;
   created_at: string;
+  reading_html: string | null;
+  content_expires_at: string | null;
+  archive_stripe_session_id: string | null;
 }

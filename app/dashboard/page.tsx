@@ -14,7 +14,7 @@ export default async function DashboardPage() {
   const { data: orders } = user
     ? await admin
         .from("orders")
-        .select("reading_id, status")
+        .select("id, reading_id, status, content_expires_at")
         .eq("email", email)
     : { data: [] };
 
@@ -28,6 +28,7 @@ export default async function DashboardPage() {
       readings={readings}
       categoryOrder={categoryOrder}
       purchasedIds={Array.from(purchasedIds)}
+      orders={orders || []}
     />
   );
 }

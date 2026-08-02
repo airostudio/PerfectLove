@@ -133,9 +133,16 @@ export async function processOrder(
     image_url,
   });
 
+  const recipientEmail = order.email as string;
+  const testEmailOverride = process.env.RESEND_TEST_EMAIL;
+  const toEmail = testEmailOverride ?? recipientEmail;
+  if (testEmailOverride) {
+    console.log(`[deliver-order] RESEND_TEST_EMAIL override: sending to ${testEmailOverride} instead of ${recipientEmail}`);
+  }
+
   const { error: emailError } = await resend.emails.send({
     from: "PerfectLove <readings@perfectlove.app>",
-    to: order.email as string,
+    to: toEmail,
     subject,
     html,
   });
@@ -144,9 +151,11 @@ export async function processOrder(
     throw new Error(`Email send failed: ${emailError.message}`);
   }
 
+  const contentExpiresAt = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString();
+
   const { error: updateError } = await getSupabase()
     .from("orders")
-    .update({ status: "delivered", image_url })
+    .update({ status: "delivered", image_url, reading_html: html, content_expires_at: contentExpiresAt })
     .eq("id", orderId);
 
   if (updateError) {

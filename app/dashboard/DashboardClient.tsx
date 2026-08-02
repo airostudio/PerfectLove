@@ -7,11 +7,19 @@ import CategorySection from "@/components/CategorySection";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { useRouter } from "next/navigation";
 
+interface OrderSummary {
+  id: string;
+  reading_id: string;
+  status: string;
+  content_expires_at: string | null;
+}
+
 interface DashboardClientProps {
   userEmail: string;
   readings: Reading[];
   categoryOrder: ReadingCategory[];
   purchasedIds: string[];
+  orders: OrderSummary[];
 }
 
 export default function DashboardClient({
@@ -19,6 +27,7 @@ export default function DashboardClient({
   readings,
   categoryOrder,
   purchasedIds,
+  orders,
 }: DashboardClientProps) {
   const router = useRouter();
   const purchased = new Set(purchasedIds);
@@ -84,9 +93,37 @@ export default function DashboardClient({
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {readings
               .filter((r) => purchased.has(r.id))
-              .map((reading, i) => (
-                <ReadingCard key={reading.id} reading={reading} index={i} />
-              ))}
+              .map((reading, i) => {
+                const order = orders.find((o) => o.reading_id === reading.id);
+                const isContentActive =
+                  order?.content_expires_at != null &&
+                  new Date(order.content_expires_at) > new Date();
+                return (
+                  <div key={reading.id} className="flex flex-col gap-1">
+                    <ReadingCard reading={reading} index={i} />
+                    {order?.status === "delivered" && (
+                      isContentActive ? (
+                        <a
+                          href={`/reading/view/${order.id}`}
+                          className="text-xs text-orchid hover:text-bone transition-colors self-start pl-1"
+                        >
+                          View Reading →
+                        </a>
+                      ) : (
+                        <a
+                          href={order ? `/reading/view/${order.id}` : "#"}
+                          className="text-xs text-ash hover:text-orchid transition-colors self-start pl-1"
+                        >
+                          Retrieve Archive $1.99 →
+                        </a>
+                      )
+                    )}
+                    {order?.status === "processing" && (
+                      <span className="text-xs text-amber-400/70 pl-1">Preparing…</span>
+                    )}
+                  </div>
+                );
+              })}
           </div>
           <div className="mystic-divider mt-12" />
         </section>
