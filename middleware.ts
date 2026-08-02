@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 
 function timingSafeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
@@ -19,9 +20,34 @@ function isAdminAuthenticated(req: NextRequest): boolean {
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  // Start with a response that we'll carry forward (holds refreshed cookies)
+  const res = NextResponse.next();
+
+  // Refresh Supabase session on every protected request
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return req.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            req.cookies.set(name, value);
+            res.cookies.set(name, value, options);
+          });
+        },
+      },
+    }
+  );
+
+  // Trigger session refresh (writes updated tokens into res cookies if needed)
+  await supabase.auth.getUser();
+
   // Login page and auth endpoint are public
   if (pathname === "/admin/login" || pathname === "/api/admin/auth") {
-    return NextResponse.next();
+    return res;
   }
 
   // All /admin and /api/admin routes require a valid admin_token cookie
@@ -35,7 +61,7 @@ export async function middleware(req: NextRequest) {
   }
 
   // User auth protection disabled during development — re-enable here when ready
-  return NextResponse.next();
+  return res;
 }
 
 export const config = {

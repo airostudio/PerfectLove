@@ -55,6 +55,38 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true });
     }
 
+    // Handle bundle purchase
+    if (metadata.type === "bundle") {
+      const customerEmail = metadata.customer_email || session.customer_details?.email;
+      if (!customerEmail || !isValidEmail(customerEmail)) {
+        console.error("Webhook: bundle missing email");
+        return NextResponse.json({ received: true });
+      }
+      // Idempotency: skip if already processed
+      const { data: existingBundle } = await getSupabase()
+        .from("orders")
+        .select("id")
+        .eq("stripe_session_id", session.id)
+        .maybeSingle();
+      if (existingBundle) return NextResponse.json({ received: true });
+
+      // Record bundle as a special order row
+      const now = new Date().toISOString();
+      await getSupabase()
+        .from("orders")
+        .insert({
+          email: customerEmail,
+          reading_id: "complete-bundle",
+          answers: {},
+          stripe_session_id: session.id,
+          amount_paid: session.amount_total ?? 2499,
+          status: "delivered",
+          delivery_type: "standard",
+          delivery_at: now,
+        });
+      return NextResponse.json({ received: true });
+    }
+
     // Safe JSON parse of answers
     let answers: Record<string, unknown> = {};
     try {

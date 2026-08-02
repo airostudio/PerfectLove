@@ -36,6 +36,10 @@ create index idx_orders_reading on public.orders (email, reading_id);
 -- alter table public.orders add column if not exists archive_stripe_session_id text;
 -- create index if not exists idx_orders_content_expiry on public.orders (email, content_expires_at) where reading_html is not null;
 
+-- Bundle purchase support: no new columns needed.
+-- Bundle orders use reading_id = 'complete-bundle', status = 'delivered'.
+-- Query: .eq('reading_id', 'complete-bundle').eq('status', 'delivered').eq('email', email)
+
 -- 5. Enable Row Level Security (required by Supabase best practices)
 alter table public.orders enable row level security;
 
