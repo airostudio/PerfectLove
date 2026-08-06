@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { persistImageToStorage } from "@/lib/image-storage";
+import { persistBase64ImageToStorage } from "@/lib/image-storage";
 
 const SKETCH_BUCKET = "sketches";
 
@@ -73,11 +73,10 @@ function buildFutureBabyPrompt(answers: Record<string, string>): string {
 }
 
 /**
- * Generate a sketch image using DALL-E 3.
+ * Generate a sketch image using gpt-image-1.
  * Supports soulmate-sketch and future-baby-sketch reading types.
- * Downloads the result and re-hosts it in Supabase Storage (DALL-E's own URL
- * expires after ~1 hour, too short-lived for an email or a 60-day dashboard view)
- * and returns that permanent URL, or null on failure.
+ * gpt-image-1 returns base64 image data (no hosted URL) — persists it to
+ * Supabase Storage and returns that permanent URL, or null on failure.
  */
 export async function generateSoulmateSketch(
   answers: Record<string, string>,
@@ -93,21 +92,21 @@ export async function generateSoulmateSketch(
 
     const response = await client.images.generate(
       {
-        model: "dall-e-3",
+        model: "gpt-image-1",
         prompt,
         n: 1,
         size: "1024x1024",
-        quality: "standard",
+        quality: "medium",
       },
       { timeout: 60_000 }
     );
 
-    const tempUrl = response.data?.[0]?.url;
-    if (!tempUrl) return null;
+    const b64 = response.data?.[0]?.b64_json;
+    if (!b64) return null;
 
-    return await persistImageToStorage(tempUrl, SKETCH_BUCKET);
+    return await persistBase64ImageToStorage(b64, SKETCH_BUCKET);
   } catch (err) {
-    console.error("DALL-E generation failed:", err instanceof Error ? err.message : err);
+    console.error("Sketch image generation failed:", err instanceof Error ? err.message : err);
     return null;
   }
 }

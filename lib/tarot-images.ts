@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import { getSupabase } from "@/lib/supabase";
-import { persistImageToStorage } from "@/lib/image-storage";
+import { persistBase64ImageToStorage } from "@/lib/image-storage";
 import { matchTarotCard } from "@/lib/tarot-cards";
 
 const TAROT_BUCKET = "tarot-cards";
@@ -30,19 +30,19 @@ async function generateAndPersistCard(cardName: string): Promise<string | null> 
   try {
     const response = await getClient().images.generate(
       {
-        model: "dall-e-3",
+        model: "gpt-image-1",
         prompt: buildCardPrompt(cardName),
         n: 1,
-        size: "1024x1792",
-        quality: "standard",
+        size: "1024x1536",
+        quality: "medium",
       },
       { timeout: 60_000 }
     );
 
-    const tempUrl = response.data?.[0]?.url;
-    if (!tempUrl) return null;
+    const b64 = response.data?.[0]?.b64_json;
+    if (!b64) return null;
 
-    return await persistImageToStorage(tempUrl, TAROT_BUCKET, `${slugify(cardName)}.png`);
+    return await persistBase64ImageToStorage(b64, TAROT_BUCKET, `${slugify(cardName)}.png`);
   } catch (err) {
     console.error(`Tarot card generation failed for "${cardName}":`, err instanceof Error ? err.message : err);
     return null;
@@ -53,7 +53,7 @@ async function generateAndPersistCard(cardName: string): Promise<string | null> 
  * Returns a permanent image URL for a tarot card, generating and caching it
  * on first use. There are only 78 possible cards, so after each is drawn
  * once site-wide, every later reading gets an instant cache hit instead of
- * a new DALL-E call. Returns null (never throws) if the name isn't
+ * a new generation call. Returns null (never throws) if the name isn't
  * recognized or generation fails — the reading still delivers without it.
  */
 export async function getTarotCardImageUrl(rawCardName: string | undefined | null): Promise<string | null> {
