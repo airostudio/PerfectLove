@@ -57,6 +57,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true });
     }
 
+    // Handle express delivery upgrade on an existing order
+    if (metadata.type === "express_upgrade") {
+      const orderId = metadata.order_id;
+      if (!orderId) {
+        console.error("Webhook: express_upgrade missing order_id in metadata");
+        return NextResponse.json({ received: true });
+      }
+
+      const { error: upgradeError } = await getSupabase()
+        .from("orders")
+        .update({ delivery_type: "express", delivery_at: computeDeliveryAt("express") })
+        .eq("id", orderId)
+        .eq("status", "processing"); // no-op if it already delivered before the upgrade landed
+
+      if (upgradeError) {
+        console.error(`Webhook: failed to upgrade order ${orderId} to express:`, upgradeError.message);
+        return NextResponse.json({ error: "Failed to upgrade delivery" }, { status: 500 });
+      }
+
+      return NextResponse.json({ received: true });
+    }
+
     // Handle bundle purchase
     if (metadata.type === "bundle") {
       const rawEmail = metadata.customer_email || session.customer_details?.email;

@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import type { Reading, ReadingCategory } from "@/lib/readings";
 import ReadingCard from "@/components/ReadingCard";
 import CategorySection from "@/components/CategorySection";
+import CountdownTimer from "@/components/CountdownTimer";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { useRouter } from "next/navigation";
 
@@ -13,6 +14,8 @@ interface OrderSummary {
   reading_id: string;
   status: string;
   content_expires_at: string | null;
+  delivery_at: string | null;
+  delivery_type: string;
 }
 
 interface DashboardClientProps {
@@ -40,6 +43,8 @@ export default function DashboardClient({
   const [bundleError, setBundleError] = useState<string | null>(null);
   const [subLoading, setSubLoading] = useState(false);
   const [subError, setSubError] = useState<string | null>(null);
+  const [upgradingOrderId, setUpgradingOrderId] = useState<string | null>(null);
+  const [upgradeErrors, setUpgradeErrors] = useState<Record<string, string>>({});
 
   const handleSignOut = async () => {
     const supabase = getSupabaseBrowser();
@@ -87,8 +92,37 @@ export default function DashboardClient({
     }
   };
 
+  const handleUpgradeExpress = async (orderId: string) => {
+    setUpgradingOrderId(orderId);
+    setUpgradeErrors((prev) => ({ ...prev, [orderId]: "" }));
+    try {
+      const res = await fetch("/api/checkout/upgrade-express", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.url) {
+        setUpgradeErrors((prev) => ({ ...prev, [orderId]: data.error ?? "Something went wrong. Please try again." }));
+        return;
+      }
+      window.location.href = data.url;
+    } catch {
+      setUpgradeErrors((prev) => ({ ...prev, [orderId]: "Something went wrong. Please try again." }));
+    } finally {
+      setUpgradingOrderId(null);
+    }
+  };
+
   const purchasedReadings = readings.filter(
     (r) => purchased.has(r.id) && r.id !== "complete-bundle"
+  );
+
+  // Readings with an actual order on file — distinct from `purchasedReadings`,
+  // which for bundle owners includes every reading whether or not they've
+  // ever taken it. This drives the status/countdown grid below.
+  const takenReadings = readings.filter((r) =>
+    orders.some((o) => o.reading_id === r.id)
   );
 
   return (
@@ -252,8 +286,8 @@ export default function DashboardClient({
           </motion.div>
         )}
 
-        {/* Purchased readings — only show when not on bundle */}
-        {purchasedReadings.length > 0 && !hasBundle && (
+        {/* Readings with an order on file — status, countdown, express upgrade */}
+        {takenReadings.length > 0 && (
           <section className="pb-12">
             <motion.div
               initial={{ opacity: 0 }}
@@ -267,11 +301,14 @@ export default function DashboardClient({
               <p className="text-sm text-ash">Your unlocked collection.</p>
             </motion.div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {purchasedReadings.map((reading, i) => {
+              {takenReadings.map((reading, i) => {
                 const order = orders.find((o) => o.reading_id === reading.id);
                 const isContentActive =
                   order?.content_expires_at != null &&
                   new Date(order.content_expires_at) > new Date();
+                const isProcessing = order?.status === "processing";
+                const isStandardDelivery = order?.delivery_type !== "express";
+
                 return (
                   <motion.div
                     key={reading.id}
@@ -297,10 +334,29 @@ export default function DashboardClient({
                           Retrieve Archive — $1.99 →
                         </a>
                       ))}
-                    {order?.status === "processing" && (
-                      <span className="text-xs text-amber-400/70 pl-1">
-                        Preparing…
-                      </span>
+                    {isProcessing && order?.delivery_at && (
+                      <div className="pl-1">
+                        <span className="text-xs text-amber-400/70">
+                          Preparing — ready in <CountdownTimer target={order.delivery_at} />
+                          {order.delivery_type === "express" ? " (Express)" : ""}
+                        </span>
+                        {isStandardDelivery && (
+                          <div className="mt-1.5">
+                            <button
+                              onClick={() => handleUpgradeExpress(order.id)}
+                              disabled={upgradingOrderId === order.id}
+                              className="text-xs text-orchid hover:text-bone transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {upgradingOrderId === order.id
+                                ? "Redirecting…"
+                                : "⚡ Upgrade to Express — arrives in 30 min — $14.99"}
+                            </button>
+                            {upgradeErrors[order.id] && (
+                              <p className="text-dusty-rose text-xs mt-1">{upgradeErrors[order.id]}</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     )}
                   </motion.div>
                 );

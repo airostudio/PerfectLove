@@ -19,7 +19,7 @@ export default async function DashboardPage() {
   const admin = getSupabase();
   const { data: orders } = await admin
     .from("orders")
-    .select("id, reading_id, status, content_expires_at")
+    .select("id, reading_id, status, content_expires_at, delivery_at, delivery_type")
     .eq("email", email);
 
   const allOrders = orders || [];

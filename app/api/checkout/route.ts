@@ -9,9 +9,7 @@ import { getSupabase } from "@/lib/supabase";
 import { getSupabaseServer } from "@/lib/supabase-server";
 import { hasActiveSubscription, isSubscriptionGatedCategory } from "@/lib/subscriptions";
 import { normalizeEmail } from "@/lib/email";
-import { computeDeliveryAt } from "@/lib/delivery-timing";
-
-const EXPRESS_PRICE_CENTS = 1499; // $14.99 — express 30-min delivery
+import { computeDeliveryAt, EXPRESS_PRICE_CENTS } from "@/lib/delivery-timing";
 
 export async function POST(req: NextRequest) {
   // Rate limit by IP
