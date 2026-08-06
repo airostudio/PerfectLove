@@ -33,9 +33,13 @@ function metaBar(sign: string, element: string, isExpress: boolean): string {
 }
 
 function heroImage(url: string, caption: string, subcaption: string): string {
+  // Explicit width/height (not just CSS max-width) so clients that block
+  // remote images by default (common for any newly-verified sending domain)
+  // render a properly-sized placeholder with the alt text visible, instead
+  // of a near-invisible sliver that looks like a broken link.
   return `<div style="text-align:center; margin:0 0 36px;">
     <p style="font-size:10px; letter-spacing:0.35em; text-transform:uppercase; color:#7a6d8a; margin:0 0 16px;">${caption}</p>
-    <img src="${url}" alt="${caption}" style="max-width:100%; border-radius:14px; border:1px solid #2d1f45; box-shadow:0 10px 40px rgba(0,0,0,0.55);" />
+    <img src="${url}" alt="${caption}" width="480" height="480" style="width:100%; max-width:480px; height:auto; border-radius:14px; border:1px solid #2d1f45;" />
     <p style="font-size:11px; color:#7a6d8a; margin:14px 0 0; font-style:italic;">${subcaption}</p>
   </div>`;
 }
@@ -47,7 +51,7 @@ function paragraph(text: string): string {
 function section(heading: string, content: string, cardImageUrl?: string | null, cardName?: string): string {
   const cardBlock = cardImageUrl
     ? `<div style="text-align:center; margin:12px 0 18px;">
-         <img src="${cardImageUrl}" alt="${cardName ?? heading}" width="170" style="width:170px; max-width:55%; border-radius:12px; border:1px solid ${GOLD}; box-shadow:0 8px 28px rgba(0,0,0,0.5);" />
+         <img src="${cardImageUrl}" alt="${cardName ?? heading}" width="170" height="255" style="width:170px; max-width:55%; height:auto; border-radius:12px; border:1px solid ${GOLD};" />
          ${cardName ? `<p style="font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:${GOLD}; margin:10px 0 0;">${cardName}</p>` : ""}
        </div>`
     : "";

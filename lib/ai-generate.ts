@@ -26,24 +26,23 @@ function buildSketchPrompt(answers: Record<string, string>): string {
 
   const featureHint =
     soulWindow === "The Smile"
-      ? "the suggestion of a soft curve at the corner of the lips"
-      : "the faint impression of eyes that hold more than they reveal";
+      ? "a warm, unmistakable smile, soft at the corners of the mouth"
+      : "clear, expressive eyes with real focus and depth";
 
   const presenceHint =
     personality === "Introverted depth"
-      ? "their face half-turned, as if emerging from shadow"
-      : "their face tilted slightly upward, open and luminous";
+      ? "facing three-quarters toward the viewer, calm and composed, gaze settled just past camera"
+      : "facing the viewer directly, open and present, chin slightly lifted";
 
   return (
     `A fine-art charcoal and graphite pencil portrait, strictly monochrome, no colour whatsoever. ` +
-    `The figure is deliberately vague — an impression rather than a likeness. ` +
+    `A clean, clearly rendered likeness with well-defined facial structure and features — resolved and complete, not an abstract impression. ` +
     `${presenceHint}. ` +
-    `The only distinct detail is ${featureHint}. ` +
+    `Their most striking feature: ${featureHint}. ` +
     `They carry ${elementMood[element] || "a quiet, otherworldly presence"}. ` +
-    `Medium: heavy charcoal strokes blended into soft graphite — deep blacks fading into pale grey paper tone. ` +
-    `The edges of the face dissolve into loose, unfinished sketch marks. ` +
-    `Background: sparse diagonal hatching that fades to white. ` +
-    `Atmosphere: intimate, mysterious, timeless — like a page torn from a lover's sketchbook. ` +
+    `Medium: confident charcoal linework with smooth graphite shading for real dimension and realism — a finished, polished rendering, not loose or unfinished sketch marks. ` +
+    `Background: simple and uncluttered, soft graduated shading fading to white. ` +
+    `Atmosphere: intimate, warm, timeless — a portrait someone would want to frame and keep. ` +
     `No text, no labels, no watermarks, no colour. Monochrome charcoal portrait only.`
   );
 }
