@@ -738,7 +738,7 @@ export async function generateReadingContent(
     const client = getClient();
     const completion = await client.chat.completions.create(
       {
-        model: "gpt-5.6-luna",
+        model: "gpt-5.4-nano-2026-03-17",
         temperature: 0.85,
         response_format: { type: "json_object" },
         messages: [

@@ -30,7 +30,7 @@ async function generateAndPersistCard(cardName: string): Promise<string | null> 
   try {
     const response = await getClient().images.generate(
       {
-        model: "gpt-5.6-luna",
+        model: "gpt-image-2-2026-04-21",
         prompt: buildCardPrompt(cardName),
         n: 1,
         size: "1024x1536",
