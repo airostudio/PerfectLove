@@ -151,7 +151,7 @@ export async function POST(req: NextRequest) {
         reading_id: readingId,
         delivery_type: isExpress ? "express" : "standard",
       },
-      success_url: `${appUrl}/reading/success?session_id={CHECKOUT_SESSION_ID}&reading=${readingId}`,
+      success_url: `${appUrl}/api/checkout/complete?session_id={CHECKOUT_SESSION_ID}&next=${encodeURIComponent(`/reading/success?reading=${readingId}`)}`,
       cancel_url: `${appUrl}/reading/${readingId}`,
     });
 

@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
         type: "bundle",
         customer_email: email,
       },
-      success_url: `${appUrl}/dashboard?bundle=success`,
+      success_url: `${appUrl}/api/checkout/complete?session_id={CHECKOUT_SESSION_ID}&next=${encodeURIComponent("/dashboard?bundle=success")}`,
       cancel_url: `${appUrl}/dashboard`,
     });
 

@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
         type: "tarot_astrology_sub",
         customer_email: user.email,
       },
-      success_url: `${appUrl}/dashboard?subscription=success`,
+      success_url: `${appUrl}/api/checkout/complete?session_id={CHECKOUT_SESSION_ID}&next=${encodeURIComponent("/dashboard?subscription=success")}`,
       cancel_url: `${appUrl}/dashboard`,
     });
 
