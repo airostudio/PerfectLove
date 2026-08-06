@@ -1,7 +1,23 @@
 import { randomUUID } from "crypto";
 import { getSupabase } from "@/lib/supabase";
 
+const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+
+// Guards against ever uploading (and then emailing) a corrupted or empty
+// result — which would otherwise silently produce a broken-looking image
+// link with no error anywhere in the pipeline. Every persist path declares
+// contentType: "image/png", so this checks for a real PNG specifically.
+function isValidPng(bytes: Uint8Array): boolean {
+  if (bytes.length < 1024) return false;
+  return PNG_SIGNATURE.every((byte, i) => bytes[i] === byte);
+}
+
 async function uploadBytes(bytes: Uint8Array, bucket: string, path: string): Promise<string | null> {
+  if (!isValidPng(bytes)) {
+    console.error(`persistImageToStorage: rejected non-PNG or corrupted image data for ${bucket}/${path} (${bytes.length} bytes)`);
+    return null;
+  }
+
   const { error } = await getSupabase()
     .storage.from(bucket)
     .upload(path, bytes, { contentType: "image/png" });
