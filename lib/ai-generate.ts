@@ -73,10 +73,10 @@ function buildFutureBabyPrompt(answers: Record<string, string>): string {
 }
 
 /**
- * Generate a sketch image using gpt-image-1.
+ * Generate a sketch image using gpt-5.6-luna.
  * Supports soulmate-sketch and future-baby-sketch reading types.
- * gpt-image-1 returns base64 image data (no hosted URL) — persists it to
- * Supabase Storage and returns that permanent URL, or null on failure.
+ * Returns base64 image data (no hosted URL) — persists it to Supabase
+ * Storage and returns that permanent URL, or null on failure.
  */
 export async function generateSoulmateSketch(
   answers: Record<string, string>,
@@ -92,7 +92,7 @@ export async function generateSoulmateSketch(
 
     const response = await client.images.generate(
       {
-        model: "gpt-image-1",
+        model: "gpt-5.6-luna",
         prompt,
         n: 1,
         size: "1024x1024",
