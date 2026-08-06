@@ -145,7 +145,7 @@ export async function processOrder(
   }
 
   const { error: emailError } = await resend.emails.send({
-    from: "PerfectLove <readings@perfectlove.app>",
+    from: "PerfectLove <readings@perfectlove.site>",
     to: toEmail,
     subject,
     html,
