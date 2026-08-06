@@ -1,4 +1,8 @@
+import { randomUUID } from "crypto";
 import OpenAI from "openai";
+import { getSupabase } from "@/lib/supabase";
+
+const SKETCH_BUCKET = "sketches";
 
 let _client: OpenAI | null = null;
 
@@ -7,6 +11,36 @@ function getClient(): OpenAI {
     _client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
   }
   return _client;
+}
+
+// DALL-E's returned URL is only valid for ~1 hour, but the image gets embedded
+// in an email that may be opened days later and in the dashboard for 60 days —
+// so download it once and re-host it in our own storage immediately.
+async function persistImage(tempUrl: string): Promise<string | null> {
+  try {
+    const res = await fetch(tempUrl);
+    if (!res.ok) {
+      console.error(`persistImage: failed to download temp image, status ${res.status}`);
+      return null;
+    }
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    const path = `${randomUUID()}.png`;
+
+    const { error } = await getSupabase()
+      .storage.from(SKETCH_BUCKET)
+      .upload(path, bytes, { contentType: "image/png" });
+
+    if (error) {
+      console.error("persistImage: upload failed:", error.message);
+      return null;
+    }
+
+    const { data } = getSupabase().storage.from(SKETCH_BUCKET).getPublicUrl(path);
+    return data.publicUrl;
+  } catch (err) {
+    console.error("persistImage: failed:", err instanceof Error ? err.message : err);
+    return null;
+  }
 }
 
 function buildSketchPrompt(answers: Record<string, string>): string {
@@ -72,7 +106,9 @@ function buildFutureBabyPrompt(answers: Record<string, string>): string {
 /**
  * Generate a sketch image using DALL-E 3.
  * Supports soulmate-sketch and future-baby-sketch reading types.
- * Returns the image URL (hosted by OpenAI, valid ~1 hour) or null on failure.
+ * Downloads the result and re-hosts it in Supabase Storage (DALL-E's own URL
+ * expires after ~1 hour, too short-lived for an email or a 60-day dashboard view)
+ * and returns that permanent URL, or null on failure.
  */
 export async function generateSoulmateSketch(
   answers: Record<string, string>,
@@ -98,7 +134,10 @@ export async function generateSoulmateSketch(
       { timeout: 60_000 }
     );
 
-    return response.data?.[0]?.url ?? null;
+    const tempUrl = response.data?.[0]?.url;
+    if (!tempUrl) return null;
+
+    return await persistImage(tempUrl);
   } catch (err) {
     console.error("DALL-E generation failed:", err instanceof Error ? err.message : err);
     return null;

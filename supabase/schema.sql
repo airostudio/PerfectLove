@@ -73,7 +73,27 @@ create policy "Service role full access" on public.subscriptions
   using (auth.role() = 'service_role')
   with check (auth.role() = 'service_role');
 
--- ── 3. Normalize email casing ───────────────────────────────────────────────
+-- ── 3. Sketch image storage ─────────────────────────────────────────────────
+-- soulmate-sketch / future-baby-sketch images are downloaded from DALL-E
+-- (whose own URL expires after ~1 hour) and re-hosted here permanently, since
+-- they're embedded in an email that may be opened days later and shown on the
+-- dashboard for 60 days. Public bucket: sketches are meant to be viewed via a
+-- plain <img src>, including inside an email client that can't authenticate.
+insert into storage.buckets (id, name, public)
+values ('sketches', 'sketches', true)
+on conflict (id) do nothing;
+
+drop policy if exists "Public read access" on storage.objects;
+create policy "Public read access" on storage.objects
+  for select
+  using (bucket_id = 'sketches');
+
+drop policy if exists "Service role write access" on storage.objects;
+create policy "Service role write access" on storage.objects
+  for insert
+  with check (bucket_id = 'sketches' and auth.role() = 'service_role');
+
+-- ── 4. Normalize email casing ───────────────────────────────────────────────
 -- The app always writes/looks up email in lowercase (lib/email.ts). Rows
 -- inserted before that change may still have mixed-case emails, which a
 -- case-sensitive lookup won't match against a normalized session email

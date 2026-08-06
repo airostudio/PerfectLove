@@ -6,8 +6,9 @@ const csp = [
   "script-src 'self' 'unsafe-inline' https://js.stripe.com",
   // Tailwind CSS and Framer Motion inject inline styles; Google Fonts stylesheet
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  // DALL-E 3 images are served from Azure Blob Storage via OpenAI
-  "img-src 'self' data: blob: https://oaidalleapiprodscus.blob.core.windows.net",
+  // Sketch images are re-hosted in Supabase Storage after generation (DALL-E's
+  // own URLs, still allowed here as a fallback, expire after ~1 hour)
+  "img-src 'self' data: blob: https://*.supabase.co https://oaidalleapiprodscus.blob.core.windows.net",
   // Google Fonts serves font files from fonts.gstatic.com
   "font-src 'self' https://fonts.gstatic.com",
   "frame-src https://js.stripe.com",

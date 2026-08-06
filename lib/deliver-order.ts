@@ -65,6 +65,13 @@ export interface EmailOrder {
   image_url?: string | null;
 }
 
+const SKETCH_READING_IDS = new Set(["soulmate-sketch", "future-baby-sketch"]);
+
+const sketchCaption: Record<string, string> = {
+  "soulmate-sketch": "Your Portrait — Channelled from Your Cosmic Profile",
+  "future-baby-sketch": "Their Portrait — Channelled from Your Combined Energy",
+};
+
 export async function buildEmail(
   order: EmailOrder
 ): Promise<{ subject: string; html: string }> {
@@ -76,42 +83,31 @@ export async function buildEmail(
   const title = meta?.title ?? reading_id.replace(/-/g, " ");
   const subject = meta?.subject(isExpress) ?? `✨ Your PerfectLove Reading is Ready`;
   const bar = metaBar(sign, element, isExpress);
+  const isSketchReading = SKETCH_READING_IDS.has(reading_id);
 
-  if (reading_id === "soulmate-sketch") {
-    const ai = await generateReadingContent("soulmate-sketch", answers);
-    const imageBlock = image_url
-      ? `<div style="text-align:center; margin:0 0 32px;">
-           <p style="font-size:10px; letter-spacing:0.35em; text-transform:uppercase; color:#7a6d8a; margin:0 0 14px;">Your Portrait — Channelled from Your Cosmic Profile</p>
-           <img src="${image_url}" alt="Your Soulmate Sketch" style="max-width:100%; border-radius:12px; border:1px solid #2d1f45; box-shadow:0 4px 32px rgba(0,0,0,0.5);" />
-           <p style="font-size:11px; color:#4a3f5a; margin:10px 0 0; font-style:italic;">Charcoal &amp; graphite — rendered from your ${sign} energy and ${element} resonance</p>
-         </div>`
-      : "";
-
-    let body = h1(title) + bar + imageBlock;
-    if (ai) {
-      body += p(ai.intro);
-      for (const s of ai.sections) body += h2(s.heading) + p(s.content);
-      body += `<div style="background:#110820; border:1px solid #2d1f45; border-radius:10px; padding:20px 24px; margin:28px 0 0;">
-        <p style="font-size:13px; font-style:italic; color:#c084fc; margin:0; line-height:1.7;">${ai.closing}</p>
-      </div>`;
-    } else {
-      body += p(`Based on your <strong>${sign}</strong> energy and <strong>${element}</strong> resonance, this portrait channels the soul drawn to yours.`);
-      body += p("They carry a quiet strength — the kind that makes you feel seen without needing to explain yourself. Keep this image close. You'll recognise them when the moment comes.");
-    }
-    return { subject, html: wrap(body) };
+  if (isSketchReading && !image_url) {
+    throw new Error(`Sketch image is missing for ${reading_id} — refusing to send an email without it`);
   }
 
   const ai = await generateReadingContent(reading_id, answers);
-  let body = h1(title) + bar;
-
-  if (ai) {
-    body += p(ai.intro);
-    for (const s of ai.sections) body += h2(s.heading) + p(s.content);
-    body += `<p style="font-size:14px; font-style:italic; color:#c084fc; margin:24px 0 0;">${ai.closing}</p>`;
-  } else {
-    body += p(`Your personalized ${title.toLowerCase()} has been crafted from your ${sign} energy and ${element} resonance.`);
-    body += p("The reading is deeply specific to your cosmic profile. Read slowly, and trust what resonates most strongly.");
+  if (!ai) {
+    throw new Error(`AI reading content generation failed for ${reading_id}`);
   }
+
+  const imageBlock = isSketchReading
+    ? `<div style="text-align:center; margin:0 0 32px;">
+         <p style="font-size:10px; letter-spacing:0.35em; text-transform:uppercase; color:#7a6d8a; margin:0 0 14px;">${sketchCaption[reading_id]}</p>
+         <img src="${image_url}" alt="${title}" style="max-width:100%; border-radius:12px; border:1px solid #2d1f45; box-shadow:0 4px 32px rgba(0,0,0,0.5);" />
+         <p style="font-size:11px; color:#4a3f5a; margin:10px 0 0; font-style:italic;">Charcoal &amp; graphite — rendered from your ${sign} energy and ${element} resonance</p>
+       </div>`
+    : "";
+
+  let body = h1(title) + bar + imageBlock;
+  body += p(ai.intro);
+  for (const s of ai.sections) body += h2(s.heading) + p(s.content);
+  body += `<div style="background:#110820; border:1px solid #2d1f45; border-radius:10px; padding:20px 24px; margin:28px 0 0;">
+    <p style="font-size:13px; font-style:italic; color:#c084fc; margin:0; line-height:1.7;">${ai.closing}</p>
+  </div>`;
 
   return { subject, html: wrap(body) };
 }
@@ -126,7 +122,7 @@ export async function processOrder(
   const readingId = order.reading_id as string;
 
   let image_url: string | null = null;
-  if (readingId === "soulmate-sketch" || readingId === "future-baby-sketch") {
+  if (SKETCH_READING_IDS.has(readingId)) {
     image_url = await generateSoulmateSketch(order.answers as Record<string, string>, readingId);
   }
 
