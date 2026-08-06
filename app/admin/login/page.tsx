@@ -9,15 +9,20 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError("");
 
+    // Read the value straight from the DOM rather than the `secret` state var —
+    // some password managers/autofill set the input's value without firing the
+    // React change event, leaving state out of sync with what's actually typed.
+    const submittedSecret = String(new FormData(e.currentTarget).get("secret") ?? "");
+
     const res = await fetch("/api/admin/auth", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ secret }),
+      body: JSON.stringify({ secret: submittedSecret }),
     });
 
     if (res.ok) {
@@ -41,6 +46,7 @@ export default function AdminLoginPage() {
             <label htmlFor="secret" className="sr-only">Admin secret</label>
             <input
               id="secret"
+              name="secret"
               type="password"
               value={secret}
               onChange={(e) => setSecret(e.target.value)}
@@ -57,7 +63,7 @@ export default function AdminLoginPage() {
 
           <button
             type="submit"
-            disabled={loading || !secret}
+            disabled={loading}
             className="btn-mystic w-full py-3 text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Verifying…" : "Enter"}
