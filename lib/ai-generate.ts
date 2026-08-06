@@ -1,6 +1,5 @@
-import { randomUUID } from "crypto";
 import OpenAI from "openai";
-import { getSupabase } from "@/lib/supabase";
+import { persistImageToStorage } from "@/lib/image-storage";
 
 const SKETCH_BUCKET = "sketches";
 
@@ -11,36 +10,6 @@ function getClient(): OpenAI {
     _client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
   }
   return _client;
-}
-
-// DALL-E's returned URL is only valid for ~1 hour, but the image gets embedded
-// in an email that may be opened days later and in the dashboard for 60 days —
-// so download it once and re-host it in our own storage immediately.
-async function persistImage(tempUrl: string): Promise<string | null> {
-  try {
-    const res = await fetch(tempUrl);
-    if (!res.ok) {
-      console.error(`persistImage: failed to download temp image, status ${res.status}`);
-      return null;
-    }
-    const bytes = new Uint8Array(await res.arrayBuffer());
-    const path = `${randomUUID()}.png`;
-
-    const { error } = await getSupabase()
-      .storage.from(SKETCH_BUCKET)
-      .upload(path, bytes, { contentType: "image/png" });
-
-    if (error) {
-      console.error("persistImage: upload failed:", error.message);
-      return null;
-    }
-
-    const { data } = getSupabase().storage.from(SKETCH_BUCKET).getPublicUrl(path);
-    return data.publicUrl;
-  } catch (err) {
-    console.error("persistImage: failed:", err instanceof Error ? err.message : err);
-    return null;
-  }
 }
 
 function buildSketchPrompt(answers: Record<string, string>): string {
@@ -137,7 +106,7 @@ export async function generateSoulmateSketch(
     const tempUrl = response.data?.[0]?.url;
     if (!tempUrl) return null;
 
-    return await persistImage(tempUrl);
+    return await persistImageToStorage(tempUrl, SKETCH_BUCKET);
   } catch (err) {
     console.error("DALL-E generation failed:", err instanceof Error ? err.message : err);
     return null;

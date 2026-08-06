@@ -136,7 +136,7 @@ export default function TeaserPreview({ reading, answers }: TeaserPreviewProps) 
                 ✦ Included in your collection
               </p>
               <p className="text-xs text-ash">
-                Preparing your full reading — this will just take a moment…
+                Unlocking — your full reading will be emailed to you within 24 hours.
               </p>
             </>
           ) : (

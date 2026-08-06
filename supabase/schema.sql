@@ -93,7 +93,40 @@ create policy "Service role write access" on storage.objects
   for insert
   with check (bucket_id = 'sketches' and auth.role() = 'service_role');
 
--- ── 4. Normalize email casing ───────────────────────────────────────────────
+-- ── 4. Tarot card image cache ────────────────────────────────────────────────
+-- One generated image per canonical card name (lib/tarot-cards.ts), reused
+-- across every future reading that draws the same card — there are only 78
+-- possible cards, so after the first time each is drawn site-wide this table
+-- turns every later draw into a free cache hit instead of a new DALL-E call.
+create table if not exists public.tarot_card_images (
+  card_name text primary key,
+  image_url text not null,
+  created_at timestamptz default now() not null
+);
+
+alter table public.tarot_card_images enable row level security;
+
+drop policy if exists "Service role full access" on public.tarot_card_images;
+create policy "Service role full access" on public.tarot_card_images
+  for all
+  using (auth.role() = 'service_role')
+  with check (auth.role() = 'service_role');
+
+insert into storage.buckets (id, name, public)
+values ('tarot-cards', 'tarot-cards', true)
+on conflict (id) do nothing;
+
+drop policy if exists "Public read access" on storage.objects;
+create policy "Public read access" on storage.objects
+  for select
+  using (bucket_id in ('sketches', 'tarot-cards'));
+
+drop policy if exists "Service role write access" on storage.objects;
+create policy "Service role write access" on storage.objects
+  for insert
+  with check (bucket_id in ('sketches', 'tarot-cards') and auth.role() = 'service_role');
+
+-- ── 5. Normalize email casing ───────────────────────────────────────────────
 -- The app always writes/looks up email in lowercase (lib/email.ts). Rows
 -- inserted before that change may still have mixed-case emails, which a
 -- case-sensitive lookup won't match against a normalized session email

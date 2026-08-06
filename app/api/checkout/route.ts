@@ -1,5 +1,4 @@
 import { randomUUID } from "crypto";
-import { Resend } from "resend";
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
@@ -8,9 +7,9 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { validateEnv } from "@/lib/env";
 import { getSupabase } from "@/lib/supabase";
 import { getSupabaseServer } from "@/lib/supabase-server";
-import { processOrder } from "@/lib/deliver-order";
 import { hasActiveSubscription, isSubscriptionGatedCategory } from "@/lib/subscriptions";
 import { normalizeEmail } from "@/lib/email";
+import { computeDeliveryAt } from "@/lib/delivery-timing";
 
 const EXPRESS_PRICE_CENTS = 1499; // $14.99 — express 30-min delivery
 
@@ -85,9 +84,10 @@ export async function POST(req: NextRequest) {
         (isSubscriptionGatedCategory(reading.category) && (await hasActiveSubscription(email)));
 
       if (eligibleFree) {
-        const now = new Date().toISOString();
-        const deliveryTypeValue: "standard" | "express" = isExpress ? "express" : "standard";
-
+        // Free unlocks always queue on the standard 24h timer, same as every paid
+        // reading — express (30-min) delivery is a paid upsell, not something a
+        // free unlock grants for free, so it's ignored here regardless of what
+        // the client sent.
         const { data: insertedOrder, error: freeInsertError } = await admin
           .from("orders")
           .insert({
@@ -97,8 +97,8 @@ export async function POST(req: NextRequest) {
             stripe_session_id: `free_${randomUUID()}`,
             amount_paid: 0,
             status: "processing",
-            delivery_type: deliveryTypeValue,
-            delivery_at: now,
+            delivery_type: "standard",
+            delivery_at: computeDeliveryAt("standard"),
           })
           .select()
           .single();
@@ -106,13 +106,6 @@ export async function POST(req: NextRequest) {
         if (freeInsertError || !insertedOrder) {
           console.error("Free unlock: failed to insert order:", freeInsertError?.message);
           return NextResponse.json({ error: "Failed to create order" }, { status: 500 });
-        }
-
-        try {
-          await processOrder(insertedOrder, new Resend(process.env.RESEND_API_KEY));
-        } catch (err) {
-          // Non-fatal — the cron job will retry since delivery_at is already in the past
-          console.error(`Free unlock: immediate delivery failed for order ${insertedOrder.id}:`, err instanceof Error ? err.message : err);
         }
 
         return NextResponse.json({ orderId: insertedOrder.id });

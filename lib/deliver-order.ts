@@ -2,27 +2,80 @@ import { Resend } from "resend";
 import { getSupabase } from "@/lib/supabase";
 import { generateSoulmateSketch } from "@/lib/ai-generate";
 import { generateReadingContent } from "@/lib/ai-reading";
+import { getTarotCardImageUrl } from "@/lib/tarot-images";
 
-// ── Email HTML builder ────────────────────────────────────────────────────────
+// ── Email HTML building blocks ──────────────────────────────────────────────
+// Inline styles only, no flexbox/grid — kept compatible with Outlook's
+// Word rendering engine. Gradient dividers declare a solid background-color
+// first so clients that ignore the gradient still show a plain gold line.
 
-const wrap = (inner: string) => `
-  <div style="font-family:Georgia,serif; max-width:600px; margin:0 auto; background:#0a0510; color:#ede4d8; padding:40px 32px; border-radius:12px;">
-    <p style="font-size:11px; letter-spacing:0.4em; text-transform:uppercase; color:#c084fc; margin:0 0 20px;">PerfectLove</p>
-    ${inner}
-    <hr style="border:none; border-top:1px solid #2d1f45; margin:36px 0 20px;" />
-    <p style="font-size:12px; color:#7a6d8a; text-align:center;">With love, The PerfectLove Team ✦</p>
-  </div>`;
+const GOLD = "#d4af37";
 
-const p = (t: string) =>
-  `<p style="font-size:15px; line-height:1.75; color:#b8a9c4; margin:0 0 16px;">${t}</p>`;
-const h1 = (t: string) =>
-  `<h1 style="font-size:26px; font-weight:normal; color:#ede4d8; margin:0 0 8px;">${t}</h1>`;
-const h2 = (t: string) =>
-  `<h2 style="font-size:17px; font-weight:normal; color:#f0c050; margin:28px 0 10px;">${t}</h2>`;
+const divider = (width = 72) =>
+  `<div style="height:1px; width:${width}px; margin:24px auto; background-color:${GOLD}; background-image:linear-gradient(90deg, transparent, ${GOLD} 50%, transparent);"></div>`;
+
+function header(): string {
+  return `
+    <div style="text-align:center; margin:0 0 8px;">
+      <p style="font-size:13px; letter-spacing:0.45em; text-transform:uppercase; color:#ede4d8; margin:0;">✦ PerfectLove ✦</p>
+    </div>
+    ${divider(64)}`;
+}
+
+function heroTitle(title: string): string {
+  return `<h1 style="font-size:28px; font-weight:normal; text-align:center; color:#ede4d8; margin:8px 0 16px; line-height:1.3;">${title}</h1>`;
+}
 
 function metaBar(sign: string, element: string, isExpress: boolean): string {
-  return `<p style="font-size:11px; color:#7a6d8a; margin:0 0 28px;">${sign} · ${element}${isExpress ? " · Express" : ""}</p>
-  <hr style="border:none; border-top:1px solid #2d1f45; margin:0 0 28px;" />`;
+  const pill = (text: string) =>
+    `<span style="display:inline-block; background:#1a0f2e; border:1px solid #2d1f45; border-radius:999px; padding:6px 16px; font-size:11px; letter-spacing:0.06em; color:#c084fc; margin:0 3px;">${text}</span>`;
+  return `<div style="text-align:center; margin:0 0 32px;">${pill(sign)}${pill(element)}${isExpress ? pill("⚡ Express") : ""}</div>`;
+}
+
+function heroImage(url: string, caption: string, subcaption: string): string {
+  return `<div style="text-align:center; margin:0 0 36px;">
+    <p style="font-size:10px; letter-spacing:0.35em; text-transform:uppercase; color:#7a6d8a; margin:0 0 16px;">${caption}</p>
+    <img src="${url}" alt="${caption}" style="max-width:100%; border-radius:14px; border:1px solid #2d1f45; box-shadow:0 10px 40px rgba(0,0,0,0.55);" />
+    <p style="font-size:11px; color:#7a6d8a; margin:14px 0 0; font-style:italic;">${subcaption}</p>
+  </div>`;
+}
+
+function paragraph(text: string): string {
+  return `<p style="font-size:15px; line-height:1.8; color:#b8a9c4; margin:0 0 18px;">${text}</p>`;
+}
+
+function section(heading: string, content: string, cardImageUrl?: string | null, cardName?: string): string {
+  const cardBlock = cardImageUrl
+    ? `<div style="text-align:center; margin:12px 0 18px;">
+         <img src="${cardImageUrl}" alt="${cardName ?? heading}" width="170" style="width:170px; max-width:55%; border-radius:12px; border:1px solid ${GOLD}; box-shadow:0 8px 28px rgba(0,0,0,0.5);" />
+         ${cardName ? `<p style="font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:${GOLD}; margin:10px 0 0;">${cardName}</p>` : ""}
+       </div>`
+    : "";
+  return `<div style="margin:0 0 30px; padding:2px 0 2px 18px; border-left:2px solid #2d1f45;">
+    <h2 style="font-size:14px; font-weight:normal; letter-spacing:0.08em; text-transform:uppercase; color:#f0c050; margin:0 0 14px;">${heading}</h2>
+    ${cardBlock}
+    <p style="font-size:15px; line-height:1.8; color:#b8a9c4; margin:0;">${content}</p>
+  </div>`;
+}
+
+function closingQuote(text: string): string {
+  return `<div style="background:#110820; border:1px solid #2d1f45; border-left:3px solid ${GOLD}; border-radius:10px; padding:22px 26px; margin:30px 0 0;">
+    <p style="font-size:13px; font-style:italic; color:#c084fc; margin:0; line-height:1.8;">${text}</p>
+  </div>`;
+}
+
+function footer(viewOnlineUrl?: string): string {
+  const link = viewOnlineUrl
+    ? `<p style="text-align:center; margin:0 0 18px;"><a href="${viewOnlineUrl}" style="color:#c084fc; font-size:12px; text-decoration:none; letter-spacing:0.02em;">View this reading in your dashboard →</a></p>`
+    : "";
+  return `${divider(40)}${link}<p style="font-size:12px; color:#7a6d8a; text-align:center; margin:0;">With love, The PerfectLove Team ✦</p>`;
+}
+
+function wrap(inner: string): string {
+  return `<div style="font-family:Georgia,serif; max-width:600px; margin:0 auto; background:#0a0510; color:#ede4d8; padding:44px 36px; border-radius:16px; border:1px solid #2d1f45;">
+    ${header()}
+    ${inner}
+  </div>`;
 }
 
 // ── Reading titles and email subjects ─────────────────────────────────────────
@@ -63,6 +116,7 @@ export interface EmailOrder {
   answers: Record<string, string>;
   delivery_type: string;
   image_url?: string | null;
+  order_id?: string;
 }
 
 const SKETCH_READING_IDS = new Set(["soulmate-sketch", "future-baby-sketch"]);
@@ -75,14 +129,13 @@ const sketchCaption: Record<string, string> = {
 export async function buildEmail(
   order: EmailOrder
 ): Promise<{ subject: string; html: string }> {
-  const { reading_id, answers, delivery_type, image_url } = order;
+  const { reading_id, answers, delivery_type, image_url, order_id } = order;
   const sign = answers.sun_sign || "your sign";
   const element = answers.element || "your element";
   const isExpress = delivery_type === "express";
   const meta = readingMeta[reading_id];
   const title = meta?.title ?? reading_id.replace(/-/g, " ");
   const subject = meta?.subject(isExpress) ?? `✨ Your PerfectLove Reading is Ready`;
-  const bar = metaBar(sign, element, isExpress);
   const isSketchReading = SKETCH_READING_IDS.has(reading_id);
 
   if (isSketchReading && !image_url) {
@@ -94,20 +147,34 @@ export async function buildEmail(
     throw new Error(`AI reading content generation failed for ${reading_id}`);
   }
 
-  const imageBlock = isSketchReading
-    ? `<div style="text-align:center; margin:0 0 32px;">
-         <p style="font-size:10px; letter-spacing:0.35em; text-transform:uppercase; color:#7a6d8a; margin:0 0 14px;">${sketchCaption[reading_id]}</p>
-         <img src="${image_url}" alt="${title}" style="max-width:100%; border-radius:12px; border:1px solid #2d1f45; box-shadow:0 4px 32px rgba(0,0,0,0.5);" />
-         <p style="font-size:11px; color:#4a3f5a; margin:10px 0 0; font-style:italic;">Charcoal &amp; graphite — rendered from your ${sign} energy and ${element} resonance</p>
-       </div>`
-    : "";
+  // Resolve any drawn tarot cards to images in parallel — best-effort, a
+  // missing image just means that section renders without one.
+  const cardNames = ai.sections.map((s) => s.card).filter((c): c is string => Boolean(c));
+  const cardImageEntries = await Promise.all(
+    cardNames.map(async (name) => [name, await getTarotCardImageUrl(name)] as const)
+  );
+  const cardImages = new Map(cardImageEntries);
 
-  let body = h1(title) + bar + imageBlock;
-  body += p(ai.intro);
-  for (const s of ai.sections) body += h2(s.heading) + p(s.content);
-  body += `<div style="background:#110820; border:1px solid #2d1f45; border-radius:10px; padding:20px 24px; margin:28px 0 0;">
-    <p style="font-size:13px; font-style:italic; color:#c084fc; margin:0; line-height:1.7;">${ai.closing}</p>
-  </div>`;
+  let body = heroTitle(title);
+  body += metaBar(sign, element, isExpress);
+
+  if (isSketchReading && image_url) {
+    body += heroImage(
+      image_url,
+      sketchCaption[reading_id],
+      `Charcoal & graphite — rendered from your ${sign} energy and ${element} resonance`
+    );
+  }
+
+  body += paragraph(ai.intro);
+  for (const s of ai.sections) {
+    body += section(s.heading, s.content, s.card ? cardImages.get(s.card) : null, s.card);
+  }
+  body += closingQuote(ai.closing);
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  const viewOnlineUrl = order_id && appUrl ? `${appUrl}/reading/view/${order_id}` : undefined;
+  body += footer(viewOnlineUrl);
 
   return { subject, html: wrap(body) };
 }
@@ -131,6 +198,7 @@ export async function processOrder(
     answers: order.answers as Record<string, string>,
     delivery_type: order.delivery_type as string,
     image_url,
+    order_id: orderId,
   });
 
   const recipientEmail = order.email as string;

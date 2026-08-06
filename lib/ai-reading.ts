@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { TAROT_DECK } from "@/lib/tarot-cards";
 
 let _client: OpenAI | null = null;
 function getClient(): OpenAI {
@@ -6,11 +7,17 @@ function getClient(): OpenAI {
   return _client;
 }
 
+// Tarot prompts must pick card names from this exact list so each drawn card
+// can be reliably matched to a generated card image (see lib/tarot-images.ts).
+const TAROT_DECK_INSTRUCTION = `You must choose every card from this exact list of 78 card names — copy the spelling exactly, with no added descriptors, suits abbreviations, or numerals:
+${TAROT_DECK.join(", ")}`;
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface ReadingSection {
   heading: string;
   content: string; // may contain simple HTML like <strong>
+  card?: string; // exact card name from TAROT_DECK — tarot readings only
 }
 
 interface GeneratedReading {
@@ -556,7 +563,8 @@ Return JSON:
     system: `You are an intuitive tarot reader who pulls a single card to answer a burning yes-or-no question.
 The card must be a real, named tarot card from the Major or Minor Arcana.
 Give a clear yes/no lean while honouring nuance.
-Tone: direct, honest, grounded, slightly mystical.`,
+Tone: direct, honest, grounded, slightly mystical.
+${TAROT_DECK_INSTRUCTION}`,
     user: (a) => `Pull one tarot card for someone seeking clarity on:
 - What they're focused on: ${a.intention || "their situation"}
 - Their current energy: ${a.energy || "seeking clarity"}
@@ -567,7 +575,7 @@ Return JSON:
 {
   "intro": "2 sentences — the energy you sensed before pulling the card and how clear the answer felt",
   "sections": [
-    { "heading": "The Card Drawn", "content": "Name the specific tarot card (e.g. 'The Star', 'Three of Cups') and describe what it represents" },
+    { "heading": "The Card Drawn", "card": "the exact card name from the list", "content": "Name the specific tarot card (e.g. 'The Star', 'Three of Cups') and describe what it represents" },
     { "heading": "The Answer", "content": "State clearly whether this leans YES or NO for their ${a.intention || 'question'} — with the specific reason why this card gives that answer" },
     { "heading": "The Nuance", "content": "What this card's full message adds beyond the yes/no — the condition, timing, or action needed for this outcome" },
     { "heading": "What to Watch For", "content": "A specific sign to look for in the next 1-2 weeks that will confirm this card's message is active" }
@@ -580,7 +588,8 @@ Return JSON:
     system: `You are an intuitive tarot reader delivering a three-card Past-Present-Future spread.
 Each card must be a specific, named card from the tarot deck — not vague archetypes.
 The three cards should tell a cohesive story together.
-Tone: narrative, insightful, specific, honest.`,
+Tone: narrative, insightful, specific, honest.
+${TAROT_DECK_INSTRUCTION}`,
     user: (a) => `Pull three tarot cards for someone focused on:
 - What they're seeking clarity on: ${a.intention || "their situation"}
 - Their relationship status: ${a.relationship_status || "not specified"}
@@ -592,9 +601,9 @@ Return JSON:
 {
   "intro": "2 sentences — the overall story these three cards tell together and the theme connecting them",
   "sections": [
-    { "heading": "Past — What Shaped This", "content": "Name the Past card. What event or pattern from the past it is pointing to — specific to their ${a.intention || 'situation'}" },
-    { "heading": "Present — Where You Stand", "content": "Name the Present card. Exactly where they are now — the energy, opportunity, or challenge that is active right now" },
-    { "heading": "Future — Where This Is Going", "content": "Name the Future card. The direction this is heading — what outcome is being pointed toward" },
+    { "heading": "Past — What Shaped This", "card": "the exact Past card name from the list", "content": "Name the Past card. What event or pattern from the past it is pointing to — specific to their ${a.intention || 'situation'}" },
+    { "heading": "Present — Where You Stand", "card": "the exact Present card name from the list", "content": "Name the Present card. Exactly where they are now — the energy, opportunity, or challenge that is active right now" },
+    { "heading": "Future — Where This Is Going", "card": "the exact Future card name from the list", "content": "Name the Future card. The direction this is heading — what outcome is being pointed toward" },
     { "heading": "The Thread Between Them", "content": "What the three cards together reveal as a pattern that none shows alone — the real insight of the full spread" }
   ],
   "closing": "One sentence — the most important action the cards are pointing toward"
@@ -605,7 +614,8 @@ Return JSON:
     system: `You are an empathic tarot reader specialising in love and past relationship readings.
 You deliver clear, compassionate readings about whether reconnection is cosmically aligned.
 Your reading honours both the heart's desires and the soul's growth.
-Tone: compassionate, honest, clear, gently direct.`,
+Tone: compassionate, honest, clear, gently direct.
+${TAROT_DECK_INSTRUCTION}`,
     user: (a) => `Pull tarot cards for someone navigating a past love:
 - Their sun sign: ${a.sun_sign}
 - How they feel about their ex: ${a.ex_feeling || "not specified"}
@@ -615,9 +625,9 @@ Return JSON:
 {
   "intro": "2 sentences — what the energy around this past connection feels like and what the cards immediately showed",
   "sections": [
-    { "heading": "Where Your Ex Stands", "content": "Name a card representing the ex's current energy. What they are genuinely feeling about the connection right now — honestly, not wishfully" },
-    { "heading": "The Truth About the Connection", "content": "Name a card for the relationship itself. What this connection truly was — the karmic purpose, the wound, the gift" },
-    { "heading": "The Path Forward", "content": "Name a card for their healing path. Given their ${a.reconnect_desire || 'feelings'}, what the cards recommend — reconnect or release — and the specific reason" },
+    { "heading": "Where Your Ex Stands", "card": "the exact card name from the list", "content": "Name a card representing the ex's current energy. What they are genuinely feeling about the connection right now — honestly, not wishfully" },
+    { "heading": "The Truth About the Connection", "card": "the exact card name from the list", "content": "Name a card for the relationship itself. What this connection truly was — the karmic purpose, the wound, the gift" },
+    { "heading": "The Path Forward", "card": "the exact card name from the list", "content": "Name a card for their healing path. Given their ${a.reconnect_desire || 'feelings'}, what the cards recommend — reconnect or release — and the specific reason" },
     { "heading": "What the Cards Want You to Know", "content": "The message beyond the surface — something about their own growth or readiness that this situation is revealing" }
   ],
   "closing": "One honest sentence — what they need to hear about this ex right now"
@@ -627,7 +637,8 @@ Return JSON:
   "love-triangle-tarot": {
     system: `You are an experienced relationship tarot reader who navigates complex love dynamics with clarity.
 You see all three sides without judgement — and reveal the truth with compassion.
-Tone: clear, compassionate, non-judgmental, empowering.`,
+Tone: clear, compassionate, non-judgmental, empowering.
+${TAROT_DECK_INSTRUCTION}`,
     user: (a) => `Pull three tarot cards for someone in a love triangle:
 - Their current situation: ${a.relationship_status || "complicated"}
 - Their role in the dynamic: ${a.triangle_role || "unclear"}
@@ -637,9 +648,9 @@ Return JSON:
 {
   "intro": "2 sentences — what the triangle's overall energy looks like and what the cards immediately revealed",
   "sections": [
-    { "heading": "Your Card — Your Role", "content": "Name a card for the querent. Their energy in this dynamic, what they're genuinely feeling, and what they actually want" },
-    { "heading": "The Dynamic Between All Three", "content": "Name a card for the triangle itself. What is really driving this situation — the hidden need keeping this triangle in place" },
-    { "heading": "The Resolution Card", "content": "Name a card for the way forward. What the cards recommend — the path that serves their highest good" },
+    { "heading": "Your Card — Your Role", "card": "the exact card name from the list", "content": "Name a card for the querent. Their energy in this dynamic, what they're genuinely feeling, and what they actually want" },
+    { "heading": "The Dynamic Between All Three", "card": "the exact card name from the list", "content": "Name a card for the triangle itself. What is really driving this situation — the hidden need keeping this triangle in place" },
+    { "heading": "The Resolution Card", "card": "the exact card name from the list", "content": "Name a card for the way forward. What the cards recommend — the path that serves their highest good" },
     { "heading": "What's Being Revealed", "content": "The deeper insight from this triangle — what it's showing them about their own patterns in love" }
   ],
   "closing": "One sentence — the single most important truth this love triangle is teaching them"
@@ -650,7 +661,8 @@ Return JSON:
     system: `You are a tarot reader who pulls a single card to reveal the true compatibility of a relationship.
 Your reading is honest — you don't just validate what the person wants to hear.
 The card speaks to whether this connection is aligned with their highest path.
-Tone: honest, loving, clear, grounded.`,
+Tone: honest, loving, clear, grounded.
+${TAROT_DECK_INSTRUCTION}`,
     user: (a) => `Pull one tarot card to reveal true compatibility for:
 - Their current situation: ${a.relationship_status || "in a connection"}
 - What their gut tells them: ${a.relationship_feeling || "not specified"}
@@ -659,7 +671,7 @@ Return JSON:
 {
   "intro": "2 sentences — the feeling you picked up from this connection before drawing the card",
   "sections": [
-    { "heading": "The Card Drawn", "content": "Name the specific tarot card. Describe its imagery, energy, and core message" },
+    { "heading": "The Card Drawn", "card": "the exact card name from the list", "content": "Name the specific tarot card. Describe its imagery, energy, and core message" },
     { "heading": "What It Says About This Connection", "content": "Directly: is this connection aligned with their highest path? What the card reveals about the compatibility" },
     { "heading": "What the Card Sees That You May Not", "content": "The truth beneath the surface — the pattern or dynamic this card is highlighting beyond what they can see emotionally" },
     { "heading": "The Guidance", "content": "What this card is asking them to do — stay, go deeper, step back, have a conversation — based on ${a.relationship_feeling || 'what they feel'}" }
@@ -672,7 +684,8 @@ Return JSON:
     system: `You are a compassionate tarot reader specialising in heartbreak and healing readings.
 You pull two cards: one naming what keeps someone stuck, one showing the path to freedom.
 Your reading is tender, honest, and genuinely healing — not toxic positivity.
-Tone: deeply compassionate, honest, gentle, hopeful without being false.`,
+Tone: deeply compassionate, honest, gentle, hopeful without being false.
+${TAROT_DECK_INSTRUCTION}`,
     user: (a) => `Pull two tarot cards for someone healing from heartbreak:
 - Where they are in healing: ${a.heartbreak_stage || "processing"}
 - What they need most: ${a.healing_need || "guidance"}
@@ -681,8 +694,8 @@ Return JSON:
 {
   "intro": "2 sentences — what the cards immediately showed about where this person is in their healing",
   "sections": [
-    { "heading": "What's Keeping You Stuck", "content": "Name the first card. Exactly what energy, belief, or pattern is holding them in the pain — honest and specific" },
-    { "heading": "What Will Set You Free", "content": "Name the second card. The energy, action, or shift that will open the door to healing — specific to their ${a.healing_need || 'need'}" },
+    { "heading": "What's Keeping You Stuck", "card": "the exact card name from the list", "content": "Name the first card. Exactly what energy, belief, or pattern is holding them in the pain — honest and specific" },
+    { "heading": "What Will Set You Free", "card": "the exact card name from the list", "content": "Name the second card. The energy, action, or shift that will open the door to healing — specific to their ${a.healing_need || 'need'}" },
     { "heading": "The Bridge Between", "content": "What moving from the first card to the second actually looks like — the practical step connecting where they are to where they're going" },
     { "heading": "What the Cards Want You to Know", "content": "The broader message for someone at ${a.heartbreak_stage || 'this stage'} of healing — what this loss is giving them access to" }
   ],
@@ -699,13 +712,15 @@ function isGeneratedReading(val: unknown): val is GeneratedReading {
   return (
     typeof obj.intro === "string" &&
     Array.isArray(obj.sections) &&
-    obj.sections.every(
-      (s: unknown) =>
-        typeof s === "object" &&
-        s !== null &&
-        typeof (s as Record<string, unknown>).heading === "string" &&
-        typeof (s as Record<string, unknown>).content === "string"
-    ) &&
+    obj.sections.every((s: unknown) => {
+      if (typeof s !== "object" || s === null) return false;
+      const section = s as Record<string, unknown>;
+      return (
+        typeof section.heading === "string" &&
+        typeof section.content === "string" &&
+        (section.card === undefined || typeof section.card === "string")
+      );
+    }) &&
     typeof obj.closing === "string"
   );
 }

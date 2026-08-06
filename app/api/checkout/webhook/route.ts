@@ -3,6 +3,7 @@ import { getStripe } from "@/lib/stripe";
 import { getSupabase } from "@/lib/supabase";
 import { validateEnv } from "@/lib/env";
 import { normalizeEmail } from "@/lib/email";
+import { computeDeliveryAt } from "@/lib/delivery-timing";
 import Stripe from "stripe";
 
 function isValidEmail(email: string): boolean {
@@ -171,12 +172,7 @@ export async function POST(req: NextRequest) {
     const rawDeliveryType = metadata.delivery_type;
     const deliveryType: "standard" | "express" =
       rawDeliveryType === "express" ? "express" : "standard";
-    const delayMs =
-      deliveryType === "express"
-        ? 30 * 60 * 1000          // 30 minutes
-        : 24 * 60 * 60 * 1000;   // 24 hours
-
-    const deliveryAt = new Date(Date.now() + delayMs).toISOString();
+    const deliveryAt = computeDeliveryAt(deliveryType);
 
     const { error: insertError } = await getSupabase()
       .from("orders")
