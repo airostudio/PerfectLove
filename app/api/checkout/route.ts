@@ -1,9 +1,15 @@
+import { randomUUID } from "crypto";
+import { Resend } from "resend";
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
 import { getReading } from "@/lib/readings";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { validateEnv } from "@/lib/env";
+import { getSupabase } from "@/lib/supabase";
+import { getSupabaseServer } from "@/lib/supabase-server";
+import { processOrder } from "@/lib/deliver-order";
+import { hasActiveSubscription, isSubscriptionGatedCategory } from "@/lib/subscriptions";
 
 const EXPRESS_PRICE_CENTS = 1499; // $14.99 — express 30-min delivery
 
@@ -56,6 +62,59 @@ export async function POST(req: NextRequest) {
     const reading = getReading(readingId);
     if (!reading) {
       return NextResponse.json({ error: "Invalid reading_id" }, { status: 400 });
+    }
+
+    // Free unlock for logged-in bundle owners / active Tarot & Astrology subscribers
+    const supabase = await getSupabaseServer();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (user?.email) {
+      const admin = getSupabase();
+      const { data: bundleOrder } = await admin
+        .from("orders")
+        .select("id")
+        .eq("email", user.email)
+        .eq("reading_id", "complete-bundle")
+        .eq("status", "delivered")
+        .maybeSingle();
+
+      const eligibleFree =
+        bundleOrder != null ||
+        (isSubscriptionGatedCategory(reading.category) && (await hasActiveSubscription(user.email)));
+
+      if (eligibleFree) {
+        const now = new Date().toISOString();
+        const deliveryTypeValue: "standard" | "express" = isExpress ? "express" : "standard";
+
+        const { data: insertedOrder, error: freeInsertError } = await admin
+          .from("orders")
+          .insert({
+            email: user.email,
+            reading_id: readingId,
+            answers: answersObj,
+            stripe_session_id: `free_${randomUUID()}`,
+            amount_paid: 0,
+            status: "processing",
+            delivery_type: deliveryTypeValue,
+            delivery_at: now,
+          })
+          .select()
+          .single();
+
+        if (freeInsertError || !insertedOrder) {
+          console.error("Free unlock: failed to insert order:", freeInsertError?.message);
+          return NextResponse.json({ error: "Failed to create order" }, { status: 500 });
+        }
+
+        try {
+          await processOrder(insertedOrder, new Resend(process.env.RESEND_API_KEY));
+        } catch (err) {
+          // Non-fatal — the cron job will retry since delivery_at is already in the past
+          console.error(`Free unlock: immediate delivery failed for order ${insertedOrder.id}:`, err instanceof Error ? err.message : err);
+        }
+
+        return NextResponse.json({ orderId: insertedOrder.id });
+      }
     }
 
     const price = isExpress ? EXPRESS_PRICE_CENTS : reading.price;

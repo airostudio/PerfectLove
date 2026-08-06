@@ -92,6 +92,50 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true });
     }
 
+    // Handle Tarot & Astrology monthly subscription signup
+    if (metadata.type === "tarot_astrology_sub") {
+      const customerEmail = metadata.customer_email || session.customer_details?.email;
+      const subscriptionId = session.subscription;
+      const customerId = session.customer;
+      if (
+        !customerEmail ||
+        !isValidEmail(customerEmail) ||
+        typeof subscriptionId !== "string" ||
+        typeof customerId !== "string"
+      ) {
+        console.error("Webhook: tarot_astrology_sub missing email or subscription/customer id");
+        return NextResponse.json({ received: true });
+      }
+
+      let currentPeriodEnd: string | null = null;
+      try {
+        const subscription = await getStripe().subscriptions.retrieve(subscriptionId);
+        currentPeriodEnd = new Date(subscription.current_period_end * 1000).toISOString();
+      } catch (err) {
+        console.error(`Webhook: failed to retrieve subscription ${subscriptionId}:`, err instanceof Error ? err.message : err);
+      }
+
+      const { error: subUpsertError } = await getSupabase()
+        .from("subscriptions")
+        .upsert(
+          {
+            email: customerEmail,
+            stripe_customer_id: customerId,
+            stripe_subscription_id: subscriptionId,
+            status: "active",
+            current_period_end: currentPeriodEnd,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "stripe_subscription_id" }
+        );
+
+      if (subUpsertError) {
+        console.error(`Webhook: failed to upsert subscription ${subscriptionId}:`, subUpsertError.message);
+        return NextResponse.json({ error: "Failed to record subscription" }, { status: 500 });
+      }
+      return NextResponse.json({ received: true });
+    }
+
     // Safe JSON parse of answers
     let answers: Record<string, unknown> = {};
     try {
@@ -146,6 +190,31 @@ export async function POST(req: NextRequest) {
     if (insertError) {
       console.error(`Webhook: failed to insert order for session ${session.id}:`, insertError.message);
       return NextResponse.json({ error: "Failed to create order" }, { status: 500 });
+    }
+  }
+
+  // Keep subscription status in sync with Stripe (renewals, failed payments, cancellations)
+  if (event.type === "customer.subscription.updated" || event.type === "customer.subscription.deleted") {
+    const subscription = event.data.object as Stripe.Subscription;
+    const status: "active" | "past_due" | "canceled" =
+      subscription.status === "active" || subscription.status === "trialing"
+        ? "active"
+        : subscription.status === "past_due"
+        ? "past_due"
+        : "canceled";
+
+    const { error: subUpdateError } = await getSupabase()
+      .from("subscriptions")
+      .update({
+        status,
+        current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("stripe_subscription_id", subscription.id);
+
+    if (subUpdateError) {
+      console.error(`Webhook: failed to update subscription ${subscription.id}:`, subUpdateError.message);
+      return NextResponse.json({ error: "Failed to update subscription" }, { status: 500 });
     }
   }
 

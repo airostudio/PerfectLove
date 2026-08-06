@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getTeaser } from "@/lib/teasers";
 import type { Reading } from "@/lib/readings";
 
@@ -14,7 +14,10 @@ function formatPrice(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`;
 }
 
+type Phase = "checking" | "paywall" | "unlocking" | "unlock-error";
+
 export default function TeaserPreview({ reading, answers }: TeaserPreviewProps) {
+  const [phase, setPhase] = useState<Phase>("checking");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [deliveryType, setDeliveryType] = useState<"standard" | "express">("standard");
@@ -26,7 +29,7 @@ export default function TeaserPreview({ reading, answers }: TeaserPreviewProps) 
   const displayPrice =
     isSketch && deliveryType === "express" ? EXPRESS_PRICE : reading.price;
 
-  const handleUnlock = async () => {
+  const submitUnlock = async () => {
     setLoading(true);
     setError("");
     try {
@@ -39,17 +42,46 @@ export default function TeaserPreview({ reading, answers }: TeaserPreviewProps) 
         }),
       });
       const data = await res.json();
-      if (data.url) {
+      if (data.orderId) {
+        window.location.href = `/reading/view/${data.orderId}`;
+      } else if (data.url) {
         window.location.href = data.url;
       } else {
         setError(data.error || "Something went wrong");
         setLoading(false);
+        setPhase("unlock-error");
       }
     } catch {
       setError("Connection failed. Please try again.");
       setLoading(false);
+      setPhase("unlock-error");
     }
   };
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await fetch(`/api/checkout/status?reading_id=${encodeURIComponent(reading.id)}`);
+        const data = await res.json();
+        if (cancelled) return;
+        if (data.eligible) {
+          setPhase("unlocking");
+          submitUnlock();
+        } else {
+          setPhase("paywall");
+        }
+      } catch {
+        if (!cancelled) setPhase("paywall");
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reading.id]);
 
   return (
     <motion.div
@@ -91,104 +123,128 @@ export default function TeaserPreview({ reading, answers }: TeaserPreviewProps) 
         <div className="relative -mt-16 h-16 bg-gradient-to-t from-[#0a0510] to-transparent pointer-events-none" />
       </div>
 
-      {/* Unlock paywall */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
-        className="glass-card p-8 text-center"
-      >
-        <p className="text-sm text-gold font-medium mb-1">{teaser.hookLine}</p>
-        <p className="text-xs text-ash mb-6">
-          Unlock your complete reading for a one-time payment.
-        </p>
-
-        {/* Express toggle — only for readings with expressAvailable */}
-        {isSketch && (
-          <div className="mb-6">
-            <p className="text-xs text-ash mb-3 uppercase tracking-[0.2em]">
-              Delivery Speed
-            </p>
-            <div className="flex rounded-xl overflow-hidden border border-white/[0.08]">
-              <button
-                onClick={() => setDeliveryType("standard")}
-                className={`flex-1 py-3 px-4 text-sm transition-colors cursor-pointer ${
-                  deliveryType === "standard"
-                    ? "bg-orchid/20 text-orchid"
-                    : "text-ash hover:text-mist"
-                } border-r border-white/[0.08]`}
-              >
-                <span className="block font-medium">Standard</span>
-                <span className="text-xs opacity-70">
-                  24 hours &middot; {formatPrice(reading.price)}
-                </span>
-              </button>
-              <button
-                onClick={() => setDeliveryType("express")}
-                className={`flex-1 py-3 px-4 text-sm transition-colors cursor-pointer ${
-                  deliveryType === "express"
-                    ? "bg-gold/10 text-gold"
-                    : "text-ash hover:text-mist"
-                }`}
-              >
-                <span className="block font-medium">{"\u26A1"} Express</span>
-                <span className="text-xs opacity-70">
-                  30 min &middot; {formatPrice(EXPRESS_PRICE)}
-                </span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        <div className="mb-6">
-          <span className="text-4xl font-serif text-bone">
-            {formatPrice(displayPrice)}
-          </span>
-          <span className="text-mist/40 text-sm ml-2">one-time</span>
-        </div>
-
-        <ul className="text-left text-mist/60 text-sm space-y-2 mb-6 max-w-xs mx-auto">
-          <li className="flex items-start gap-2">
-            <span className="text-gold text-xs mt-0.5">{"\u2726"}</span>
-            <span>Full detailed reading delivered to your inbox</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-gold text-xs mt-0.5">{"\u2726"}</span>
-            <span>Personalized to your exact cosmic profile</span>
-          </li>
-          {isSketch && deliveryType === "express" ? (
-            <li className="flex items-start gap-2">
-              <span className="text-gold text-xs mt-0.5">{"\u26A1"}</span>
-              <span>Express — arrives in your inbox within 30 minutes</span>
-            </li>
-          ) : (
-            <li className="flex items-start gap-2">
-              <span className="text-gold text-xs mt-0.5">{"\u2726"}</span>
-              <span>Yours to keep forever &mdash; no subscription</span>
-            </li>
-          )}
-        </ul>
-
-        {error && (
-          <p className="text-dusty-rose text-sm mb-4">{error}</p>
-        )}
-
-        <motion.button
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={handleUnlock}
-          disabled={loading}
-          className="btn-mystic w-full py-4 text-white text-base disabled:opacity-50 cursor-pointer"
+      {(phase === "checking" || phase === "unlocking") && (
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="glass-card p-8 text-center"
         >
-          {loading
-            ? "Preparing\u2026"
-            : `Unlock Full Reading \u2014 ${formatPrice(displayPrice)}`}
-        </motion.button>
+          {phase === "unlocking" ? (
+            <>
+              <p className="text-sm text-gold font-medium mb-1">
+                ✦ Included in your collection
+              </p>
+              <p className="text-xs text-ash">
+                Preparing your full reading — this will just take a moment…
+              </p>
+            </>
+          ) : (
+            <p className="text-xs text-ash">Checking your collection…</p>
+          )}
+        </motion.div>
+      )}
 
-        <p className="mt-4 text-[10px] text-ash/40">
-          Secure one-time payment via Stripe.
-        </p>
-      </motion.div>
+      {/* Unlock paywall */}
+      {(phase === "paywall" || phase === "unlock-error") && (
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="glass-card p-8 text-center"
+        >
+          <p className="text-sm text-gold font-medium mb-1">{teaser.hookLine}</p>
+          <p className="text-xs text-ash mb-6">
+            Unlock your complete reading for a one-time payment.
+          </p>
+
+          {/* Express toggle — only for readings with expressAvailable */}
+          {isSketch && (
+            <div className="mb-6">
+              <p className="text-xs text-ash mb-3 uppercase tracking-[0.2em]">
+                Delivery Speed
+              </p>
+              <div className="flex rounded-xl overflow-hidden border border-white/[0.08]">
+                <button
+                  onClick={() => setDeliveryType("standard")}
+                  className={`flex-1 py-3 px-4 text-sm transition-colors cursor-pointer ${
+                    deliveryType === "standard"
+                      ? "bg-orchid/20 text-orchid"
+                      : "text-ash hover:text-mist"
+                  } border-r border-white/[0.08]`}
+                >
+                  <span className="block font-medium">Standard</span>
+                  <span className="text-xs opacity-70">
+                    24 hours &middot; {formatPrice(reading.price)}
+                  </span>
+                </button>
+                <button
+                  onClick={() => setDeliveryType("express")}
+                  className={`flex-1 py-3 px-4 text-sm transition-colors cursor-pointer ${
+                    deliveryType === "express"
+                      ? "bg-gold/10 text-gold"
+                      : "text-ash hover:text-mist"
+                  }`}
+                >
+                  <span className="block font-medium">{"⚡"} Express</span>
+                  <span className="text-xs opacity-70">
+                    30 min &middot; {formatPrice(EXPRESS_PRICE)}
+                  </span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="mb-6">
+            <span className="text-4xl font-serif text-bone">
+              {formatPrice(displayPrice)}
+            </span>
+            <span className="text-mist/40 text-sm ml-2">one-time</span>
+          </div>
+
+          <ul className="text-left text-mist/60 text-sm space-y-2 mb-6 max-w-xs mx-auto">
+            <li className="flex items-start gap-2">
+              <span className="text-gold text-xs mt-0.5">{"✦"}</span>
+              <span>Full detailed reading delivered to your inbox</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-gold text-xs mt-0.5">{"✦"}</span>
+              <span>Personalized to your exact cosmic profile</span>
+            </li>
+            {isSketch && deliveryType === "express" ? (
+              <li className="flex items-start gap-2">
+                <span className="text-gold text-xs mt-0.5">{"⚡"}</span>
+                <span>Express — arrives in your inbox within 30 minutes</span>
+              </li>
+            ) : (
+              <li className="flex items-start gap-2">
+                <span className="text-gold text-xs mt-0.5">{"✦"}</span>
+                <span>Yours to keep forever &mdash; no subscription</span>
+              </li>
+            )}
+          </ul>
+
+          {error && (
+            <p className="text-dusty-rose text-sm mb-4">{error}</p>
+          )}
+
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={submitUnlock}
+            disabled={loading}
+            className="btn-mystic w-full py-4 text-white text-base disabled:opacity-50 cursor-pointer"
+          >
+            {loading
+              ? "Preparing…"
+              : `Unlock Full Reading — ${formatPrice(displayPrice)}`}
+          </motion.button>
+
+          <p className="mt-4 text-[10px] text-ash/40">
+            Secure one-time payment via Stripe.
+          </p>
+        </motion.div>
+      )}
     </motion.div>
   );
 }

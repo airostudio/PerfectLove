@@ -48,3 +48,27 @@ create policy "Service role full access" on public.orders
   for all
   using (auth.role() = 'service_role')
   with check (auth.role() = 'service_role');
+
+-- 7. Tarot & Astrology monthly subscription ($1.99/mo)
+-- Grants unlimited fresh Tarot / Astrology & Numerology readings while active.
+-- Sold standalone — does not require the complete-collection bundle.
+create table public.subscriptions (
+  id uuid default gen_random_uuid() primary key,
+  email text not null,
+  stripe_customer_id text not null,
+  stripe_subscription_id text not null unique,
+  status text not null default 'active' check (status in ('active', 'past_due', 'canceled')),
+  current_period_end timestamptz,
+  created_at timestamptz default now() not null,
+  updated_at timestamptz default now() not null
+);
+
+create index idx_subscriptions_email on public.subscriptions (email);
+create index idx_subscriptions_stripe_subscription on public.subscriptions (stripe_subscription_id);
+
+alter table public.subscriptions enable row level security;
+
+create policy "Service role full access" on public.subscriptions
+  for all
+  using (auth.role() = 'service_role')
+  with check (auth.role() = 'service_role');

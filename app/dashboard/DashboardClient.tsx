@@ -22,6 +22,7 @@ interface DashboardClientProps {
   purchasedIds: string[];
   orders: OrderSummary[];
   hasBundle: boolean;
+  hasTarotAstrologySub: boolean;
 }
 
 export default function DashboardClient({
@@ -31,11 +32,14 @@ export default function DashboardClient({
   purchasedIds,
   orders,
   hasBundle,
+  hasTarotAstrologySub,
 }: DashboardClientProps) {
   const router = useRouter();
   const purchased = new Set(purchasedIds);
   const [bundleLoading, setBundleLoading] = useState(false);
   const [bundleError, setBundleError] = useState<string | null>(null);
+  const [subLoading, setSubLoading] = useState(false);
+  const [subError, setSubError] = useState<string | null>(null);
 
   const handleSignOut = async () => {
     const supabase = getSupabaseBrowser();
@@ -62,6 +66,24 @@ export default function DashboardClient({
       setBundleError("Something went wrong. Please try again.");
     } finally {
       setBundleLoading(false);
+    }
+  };
+
+  const handleSubscribeCheckout = async () => {
+    setSubLoading(true);
+    setSubError(null);
+    try {
+      const res = await fetch("/api/checkout/subscribe", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok || !data.url) {
+        setSubError(data.error ?? "Something went wrong. Please try again.");
+        return;
+      }
+      window.location.href = data.url;
+    } catch {
+      setSubError("Something went wrong. Please try again.");
+    } finally {
+      setSubLoading(false);
     }
   };
 
@@ -184,6 +206,48 @@ export default function DashboardClient({
               {bundleLoading
                 ? "Redirecting…"
                 : "Unlock Complete Collection — $24.99"}
+            </button>
+          </motion.div>
+        )}
+
+        {/* Tarot & Astrology monthly subscription */}
+        {hasTarotAstrologySub ? (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+            className="glass-card p-5 mb-10 border border-orchid/30 flex items-center gap-3"
+          >
+            <span className="text-orchid text-base">✦</span>
+            <div>
+              <p className="text-bone text-sm font-serif">Tarot & Astrology Monthly</p>
+              <p className="text-ash text-xs mt-0.5">
+                Active — pull fresh Tarot and Astrology & Numerology readings anytime.
+              </p>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+            className="glass-card p-6 mb-10 border border-orchid/20 flex flex-col sm:flex-row sm:items-center gap-4 sm:justify-between"
+          >
+            <div>
+              <p className="text-bone text-sm font-serif mb-1">Tarot & Astrology Monthly</p>
+              <p className="text-ash text-xs">
+                Fresh Tarot pulls and Astrology & Numerology readings, every month — separate from the bundle.
+              </p>
+              {subError && (
+                <p className="text-dusty-rose text-xs mt-2">{subError}</p>
+              )}
+            </div>
+            <button
+              onClick={handleSubscribeCheckout}
+              disabled={subLoading}
+              className="btn-mystic px-6 py-3 text-white text-sm whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {subLoading ? "Redirecting…" : "Subscribe — $1.99/mo"}
             </button>
           </motion.div>
         )}

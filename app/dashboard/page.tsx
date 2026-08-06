@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getSupabaseServer } from "@/lib/supabase-server";
 import { getSupabase } from "@/lib/supabase";
 import { readings, categoryOrder } from "@/lib/readings";
+import { hasActiveSubscription } from "@/lib/subscriptions";
 import DashboardClient from "./DashboardClient";
 
 export default async function DashboardPage() {
@@ -37,6 +38,8 @@ export default async function DashboardPage() {
         )
       );
 
+  const hasTarotAstrologySub = await hasActiveSubscription(email);
+
   return (
     <DashboardClient
       userEmail={email}
@@ -45,6 +48,7 @@ export default async function DashboardPage() {
       purchasedIds={purchasedIds}
       orders={allOrders}
       hasBundle={hasBundle}
+      hasTarotAstrologySub={hasTarotAstrologySub}
     />
   );
 }
