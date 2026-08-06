@@ -10,6 +10,7 @@ import { getSupabase } from "@/lib/supabase";
 import { getSupabaseServer } from "@/lib/supabase-server";
 import { processOrder } from "@/lib/deliver-order";
 import { hasActiveSubscription, isSubscriptionGatedCategory } from "@/lib/subscriptions";
+import { normalizeEmail } from "@/lib/email";
 
 const EXPRESS_PRICE_CENTS = 1499; // $14.99 — express 30-min delivery
 
@@ -69,18 +70,19 @@ export async function POST(req: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (user?.email) {
+      const email = normalizeEmail(user.email);
       const admin = getSupabase();
       const { data: bundleOrder } = await admin
         .from("orders")
         .select("id")
-        .eq("email", user.email)
+        .eq("email", email)
         .eq("reading_id", "complete-bundle")
         .eq("status", "delivered")
         .maybeSingle();
 
       const eligibleFree =
         bundleOrder != null ||
-        (isSubscriptionGatedCategory(reading.category) && (await hasActiveSubscription(user.email)));
+        (isSubscriptionGatedCategory(reading.category) && (await hasActiveSubscription(email)));
 
       if (eligibleFree) {
         const now = new Date().toISOString();
@@ -89,7 +91,7 @@ export async function POST(req: NextRequest) {
         const { data: insertedOrder, error: freeInsertError } = await admin
           .from("orders")
           .insert({
-            email: user.email,
+            email,
             reading_id: readingId,
             answers: answersObj,
             stripe_session_id: `free_${randomUUID()}`,

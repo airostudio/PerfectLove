@@ -5,6 +5,7 @@ import { getSupabaseServer } from "@/lib/supabase-server";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { validateEnv } from "@/lib/env";
 import { SUBSCRIPTION_PRICE_CENTS } from "@/lib/subscriptions";
+import { normalizeEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
@@ -24,6 +25,7 @@ export async function POST(req: NextRequest) {
     if (!user?.email) {
       return NextResponse.json({ error: "You must be signed in to subscribe." }, { status: 401 });
     }
+    const email = normalizeEmail(user.email);
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL;
     if (!appUrl) {
@@ -33,7 +35,7 @@ export async function POST(req: NextRequest) {
     const session = await getStripe().checkout.sessions.create({
       mode: "subscription",
       payment_method_types: ["card"],
-      customer_email: user.email,
+      customer_email: email,
       line_items: [
         {
           price_data: {
@@ -49,7 +51,7 @@ export async function POST(req: NextRequest) {
       ],
       metadata: {
         type: "tarot_astrology_sub",
-        customer_email: user.email,
+        customer_email: email,
       },
       success_url: `${appUrl}/api/checkout/complete?session_id={CHECKOUT_SESSION_ID}&next=${encodeURIComponent("/dashboard?subscription=success")}`,
       cancel_url: `${appUrl}/dashboard`,

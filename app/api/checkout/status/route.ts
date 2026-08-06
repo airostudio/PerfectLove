@@ -3,6 +3,7 @@ import { getSupabase } from "@/lib/supabase";
 import { getSupabaseServer } from "@/lib/supabase-server";
 import { getReading } from "@/lib/readings";
 import { hasActiveSubscription, isSubscriptionGatedCategory } from "@/lib/subscriptions";
+import { normalizeEmail } from "@/lib/email";
 
 export async function GET(req: NextRequest) {
   const readingId = req.nextUrl.searchParams.get("reading_id");
@@ -21,11 +22,12 @@ export async function GET(req: NextRequest) {
   if (!user?.email) {
     return NextResponse.json({ eligible: false });
   }
+  const email = normalizeEmail(user.email);
 
   const { data: bundleOrder } = await getSupabase()
     .from("orders")
     .select("id")
-    .eq("email", user.email)
+    .eq("email", email)
     .eq("reading_id", "complete-bundle")
     .eq("status", "delivered")
     .maybeSingle();
@@ -35,7 +37,7 @@ export async function GET(req: NextRequest) {
   }
 
   if (isSubscriptionGatedCategory(reading.category)) {
-    const subscribed = await hasActiveSubscription(user.email);
+    const subscribed = await hasActiveSubscription(email);
     if (subscribed) {
       return NextResponse.json({ eligible: true, reason: "subscription" });
     }

@@ -1,4 +1,5 @@
 import { getSupabase } from "@/lib/supabase";
+import { normalizeEmail } from "@/lib/email";
 import type { ReadingCategory } from "@/lib/readings";
 
 export const SUBSCRIPTION_PRICE_CENTS = 199; // $1.99/mo
@@ -13,7 +14,7 @@ export async function hasActiveSubscription(email: string): Promise<boolean> {
   const { data } = await getSupabase()
     .from("subscriptions")
     .select("id")
-    .eq("email", email)
+    .eq("email", normalizeEmail(email))
     .eq("status", "active")
     .maybeSingle();
 

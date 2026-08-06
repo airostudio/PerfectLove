@@ -23,9 +23,13 @@ export async function GET(req: NextRequest) {
     const session = await getStripe().checkout.sessions.retrieve(sessionId);
 
     if (session.status === "complete") {
-      const email = session.customer_details?.email || session.metadata?.customer_email;
-      if (email) {
-        const { error } = await establishSessionForEmail(email);
+      // Prefer metadata.customer_email — it's the exact email the order/subscription
+      // was recorded under in the webhook (the signed-in identity that started
+      // checkout). Falls back to what Stripe collected only when metadata wasn't set
+      // (anonymous individual reading purchases).
+      const rawEmail = session.metadata?.customer_email || session.customer_details?.email;
+      if (rawEmail) {
+        const { error } = await establishSessionForEmail(rawEmail);
         if (error) {
           console.error("checkout/complete: failed to establish session:", error);
         }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
 import { getSupabase } from "@/lib/supabase";
 import { validateEnv } from "@/lib/env";
+import { normalizeEmail } from "@/lib/email";
 import Stripe from "stripe";
 
 function isValidEmail(email: string): boolean {
@@ -57,11 +58,12 @@ export async function POST(req: NextRequest) {
 
     // Handle bundle purchase
     if (metadata.type === "bundle") {
-      const customerEmail = metadata.customer_email || session.customer_details?.email;
-      if (!customerEmail || !isValidEmail(customerEmail)) {
+      const rawEmail = metadata.customer_email || session.customer_details?.email;
+      if (!rawEmail || !isValidEmail(rawEmail)) {
         console.error("Webhook: bundle missing email");
         return NextResponse.json({ received: true });
       }
+      const customerEmail = normalizeEmail(rawEmail);
       // Idempotency: skip if already processed
       const { data: existingBundle } = await getSupabase()
         .from("orders")
@@ -94,18 +96,19 @@ export async function POST(req: NextRequest) {
 
     // Handle Tarot & Astrology monthly subscription signup
     if (metadata.type === "tarot_astrology_sub") {
-      const customerEmail = metadata.customer_email || session.customer_details?.email;
+      const rawEmail = metadata.customer_email || session.customer_details?.email;
       const subscriptionId = session.subscription;
       const customerId = session.customer;
       if (
-        !customerEmail ||
-        !isValidEmail(customerEmail) ||
+        !rawEmail ||
+        !isValidEmail(rawEmail) ||
         typeof subscriptionId !== "string" ||
         typeof customerId !== "string"
       ) {
         console.error("Webhook: tarot_astrology_sub missing email or subscription/customer id");
         return NextResponse.json({ received: true });
       }
+      const customerEmail = normalizeEmail(rawEmail);
 
       let currentPeriodEnd: string | null = null;
       try {
@@ -146,12 +149,13 @@ export async function POST(req: NextRequest) {
     }
 
     const readingId = metadata.reading_id || "unknown";
-    const email = session.customer_details?.email;
+    const rawEmail = session.customer_details?.email;
 
-    if (!email || !isValidEmail(email)) {
+    if (!rawEmail || !isValidEmail(rawEmail)) {
       console.error(`Webhook: invalid or missing email for session ${session.id}`);
       return NextResponse.json({ received: true });
     }
+    const email = normalizeEmail(rawEmail);
 
     // Idempotency: skip if this session was already processed
     const { data: existing } = await getSupabase()

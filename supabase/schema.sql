@@ -72,3 +72,12 @@ create policy "Service role full access" on public.subscriptions
   for all
   using (auth.role() = 'service_role')
   with check (auth.role() = 'service_role');
+
+-- 8. One-time backfill: normalize existing email casing.
+-- All email writes/reads are now lowercased in application code (lib/email.ts),
+-- but rows inserted before that change may still have mixed-case emails —
+-- which a case-sensitive lookup won't match against a normalized session email
+-- (e.g. a bundle/order paid for as "Jane@Example.com" becomes invisible once the
+-- app looks it up as "jane@example.com"). Run this once to fix any such rows:
+-- update public.orders set email = lower(trim(email)) where email <> lower(trim(email));
+-- update public.subscriptions set email = lower(trim(email)) where email <> lower(trim(email));

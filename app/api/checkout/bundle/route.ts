@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { validateEnv } from "@/lib/env";
+import { normalizeEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   // Rate limit by IP
@@ -24,11 +25,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
     }
 
-    const { email } = body as Record<string, unknown>;
+    const { email: rawEmail } = body as Record<string, unknown>;
 
-    if (!email || typeof email !== "string") {
+    if (!rawEmail || typeof rawEmail !== "string") {
       return NextResponse.json({ error: "email is required" }, { status: 400 });
     }
+    const email = normalizeEmail(rawEmail);
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL;
     if (!appUrl) {

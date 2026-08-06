@@ -3,6 +3,7 @@ import { getSupabaseServer } from "@/lib/supabase-server";
 import { getSupabase } from "@/lib/supabase";
 import { readings, categoryOrder } from "@/lib/readings";
 import { hasActiveSubscription } from "@/lib/subscriptions";
+import { normalizeEmail } from "@/lib/email";
 import DashboardClient from "./DashboardClient";
 
 export default async function DashboardPage() {
@@ -13,7 +14,7 @@ export default async function DashboardPage() {
     redirect("/auth");
   }
 
-  const email = user.email!;
+  const email = normalizeEmail(user.email!);
 
   const admin = getSupabase();
   const { data: orders } = await admin

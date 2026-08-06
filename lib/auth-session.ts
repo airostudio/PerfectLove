@@ -1,5 +1,6 @@
 import { getSupabase } from "@/lib/supabase";
 import { getSupabaseServer } from "@/lib/supabase-server";
+import { normalizeEmail } from "@/lib/email";
 
 /**
  * Signs the current browser (via its cookies) into the given email's account,
@@ -7,7 +8,8 @@ import { getSupabaseServer } from "@/lib/supabase-server";
  * right after a Stripe purchase — must be called from a Route Handler
  * (cookies() is read-only in Server Components).
  */
-export async function establishSessionForEmail(email: string): Promise<{ error: string | null }> {
+export async function establishSessionForEmail(rawEmail: string): Promise<{ error: string | null }> {
+  const email = normalizeEmail(rawEmail);
   const admin = getSupabase();
   const { data, error } = await admin.auth.admin.generateLink({
     type: "magiclink",
