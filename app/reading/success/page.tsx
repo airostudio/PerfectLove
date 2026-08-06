@@ -12,6 +12,8 @@ function SuccessContent() {
   const readingParam = params.get("reading") ?? "";
   const reading = getReading(readingParam);
   const title = reading?.title ?? null;
+  const isExpress = params.get("express") === "1";
+  const timeframe = isExpress ? "30 minutes" : "24 hours";
 
   const [signedIn, setSignedIn] = useState(false);
 
@@ -51,13 +53,14 @@ function SuccessContent() {
           "Your reading is being crafted with cosmic care. "
         )}
         Check your inbox within{" "}
-        <span className="text-gold font-medium">24 hours</span> for the full
+        <span className="text-gold font-medium">{timeframe}</span> for the full
         reveal.
       </p>
 
       <p className="text-xs text-ash mb-8">
         A confirmation has been sent to your email. Your complete personalized
-        reading will follow within 24 hours.
+        reading will follow within {timeframe}
+        {isExpress ? " — express delivery" : ""}.
       </p>
 
       {signedIn && (
