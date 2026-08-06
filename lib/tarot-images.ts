@@ -35,7 +35,6 @@ async function generateAndPersistCard(cardName: string): Promise<string | null> 
         n: 1,
         size: "1024x1792",
         quality: "standard",
-        style: "vivid",
       },
       { timeout: 60_000 }
     );
