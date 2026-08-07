@@ -13,9 +13,25 @@ function getClient(): OpenAI {
 }
 
 function buildSketchPrompt(answers: Record<string, string>): string {
+  const sign = answers.sun_sign || "Cancer";
   const element = answers.element || "Water";
   const personality = answers.personality || "Introverted depth";
   const soulWindow = answers.soul_window || "The Gaze";
+
+  const zodiacHint: Record<string, string> = {
+    Aries: "a bold, direct energy in their bearing",
+    Taurus: "an unhurried, sensual calm",
+    Gemini: "a quick, alert brightness in their expression",
+    Cancer: "a tender, protective softness",
+    Leo: "a warm, magnetic confidence",
+    Virgo: "a thoughtful, precise attentiveness",
+    Libra: "an easy, harmonious grace",
+    Scorpio: "a magnetic, unreadable intensity",
+    Sagittarius: "an open, adventurous spark",
+    Capricorn: "a quiet, steady resolve",
+    Aquarius: "a distant, dreaming originality",
+    Pisces: "a soft, otherworldly dreaminess",
+  };
 
   const elementMood: Record<string, string> = {
     Earth: "a calm, grounded stillness — as though rooted deeply in the earth",
@@ -35,15 +51,14 @@ function buildSketchPrompt(answers: Record<string, string>): string {
       : "facing the viewer directly, open and present, chin slightly lifted";
 
   return (
-    `A fine-art charcoal and graphite pencil portrait, strictly monochrome, no colour whatsoever. ` +
-    `A clean, clearly rendered likeness with well-defined facial structure and features — resolved and complete, not an abstract impression. ` +
+    `A loose, hand-drawn charcoal and pencil portrait sketch, strictly monochrome, no colour whatsoever. ` +
+    `A recognizable likeness with clear facial structure and features, but rendered with a light, quick sketch touch — visible individual strokes, some edges left open or only suggested, the way a real sketch artist works. Not a smoothed-over, fully polished rendering. ` +
     `${presenceHint}. ` +
     `Their most striking feature: ${featureHint}. ` +
-    `They carry ${elementMood[element] || "a quiet, otherworldly presence"}. ` +
-    `Medium: confident charcoal linework with smooth graphite shading for real dimension and realism — a finished, polished rendering, not loose or unfinished sketch marks. ` +
+    `Their bearing carries ${zodiacHint[sign] || "a quiet magnetism"}, layered with ${elementMood[element] || "a quiet, otherworldly presence"}. ` +
     `Background: simple and uncluttered, soft graduated shading fading to white. ` +
     `Atmosphere: intimate, warm, timeless — a portrait someone would want to frame and keep. ` +
-    `No text, no labels, no watermarks, no colour. Monochrome charcoal portrait only.`
+    `No text, no labels, no watermarks, no colour. Monochrome pencil sketch portrait only.`
   );
 }
 
