@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { Suspense } from "react";
+import GoogleAnalyticsPageview from "@/components/GoogleAnalyticsPageview";
 import "./globals.css";
 
 const GA_MEASUREMENT_ID = "G-Y963BC6PMT";
@@ -226,11 +228,14 @@ export default function RootLayout({
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', '${GA_MEASUREMENT_ID}');
+            gtag('config', '${GA_MEASUREMENT_ID}', { send_page_view: false });
           `}
         </Script>
       </head>
       <body className="antialiased font-sans">
+        <Suspense fallback={null}>
+          <GoogleAnalyticsPageview />
+        </Suspense>
         <div className="starfield" />
         <div className="nebula nebula-1" />
         <div className="nebula nebula-2" />
