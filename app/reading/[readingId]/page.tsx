@@ -7,6 +7,7 @@ import { getQuestionsForReading } from "@/lib/questions";
 import { getReading } from "@/lib/readings";
 import QuizStep from "@/components/QuizStep";
 import TeaserPreview from "@/components/TeaserPreview";
+import SketchFlow from "@/components/SketchFlow";
 import Link from "next/link";
 
 export default function ReadingQuizPage() {
@@ -39,6 +40,14 @@ export default function ReadingQuizPage() {
         >
           &larr; Back to Insights
         </Link>
+      </main>
+    );
+  }
+
+  if (readingId === "soulmate-sketch") {
+    return (
+      <main className="min-h-screen flex flex-col items-center justify-center px-6 py-20">
+        <SketchFlow reading={reading} />
       </main>
     );
   }

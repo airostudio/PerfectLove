@@ -131,9 +131,11 @@ const karmicLessonQ: QuizQuestion = {
 };
 
 // Questions mapped by reading ID
+// "soulmate-sketch" is intentionally absent here — it uses a dedicated,
+// structurally different flow (components/SketchFlow.tsx) with name/gender/
+// birth-detail inputs and computed zodiac-summary reveal screens, not this
+// generic N-question-then-teaser pattern.
 export const questionsByReading: Record<string, QuizQuestion[]> = {
-  "soulmate-sketch": [sunSignQ, personalityQ, elementQ, soulWindowQ],
-
   "soulmate-name-initials": [sunSignQ, elementQ, letterEnergyQ],
   "soulmate-zodiac": [sunSignQ, elementQ, partnerEnergyQ],
   "soulmate-aura": [sunSignQ, elementQ, auraFeelQ],

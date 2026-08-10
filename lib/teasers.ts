@@ -23,20 +23,29 @@ export function getTeaser(
   const element = answers.element || "your element";
 
   const teasers: Record<string, TeaserContent> = {
-    "soulmate-sketch": {
-      headline: answers.soul_window === "The Smile"
-        ? "There is a smile you haven’t seen yet…"
-        : "There are eyes you haven’t met yet…",
-      preview: answers.personality === "Introverted depth"
-        ? `Your ${sign} energy carries a quiet depth that most people never reach. The soul drawn to yours matches that depth — they won't rush you, won't overwhelm you, and when you first speak, it will feel less like meeting someone new and more like remembering someone you already knew.`
-        : `Your ${sign} energy radiates warmth that calls in its equal. The soul drawn to yours carries the same radiance — the kind of person whose presence in a room you notice before you see their face. When you meet, there will be no awkward beginning. Just the feeling of: oh, there you are.`,
-      blurredLines: [
-        `Their ${answers.soul_window === "The Smile" ? "smile" : "eyes"} will be the first thing you notice — ████████ in a way that feels immediately...`,
-        `The ${element} resonance in your chart points to someone who █████████ rather than fills silence with...`,
-        `The sign that it’s them: a very specific moment involving ████████ that you will recognise because...`,
-      ],
-      hookLine: "Your soulmate portrait and full recognition guide are ready.",
-    },
+    "soulmate-sketch": (() => {
+      const name = answers.name;
+      const traits = (answers.soulmate_traits || "").split(", ").filter(Boolean);
+      const primaryTrait = traits[0] ? traits[0].toLowerCase() : "a soul who feels like home";
+      const genderWord: Record<string, string> = { Male: "him", Female: "her", "Non-Binary": "them", Other: "them" };
+      const subjectWord = genderWord[answers.soulmate_gender] || "them";
+      // Fire/Air signs are the traditional "yang" polarity (outward-facing) —
+      // used here in place of a self-reported personality answer.
+      const isYang = element === "Fire" || element === "Air";
+
+      return {
+        headline: `${name ? `${name}, there` : "There"} is someone you haven’t met yet…`,
+        preview: isYang
+          ? `Your ${sign} energy radiates a warmth that calls in its equal. The soul drawn to yours carries ${primaryTrait} — the kind of presence you'll notice in a room before you even see ${subjectWord}. When you meet, there will be no awkward beginning. Just the feeling of: oh, there you are.`
+          : `Your ${sign} energy carries a quiet depth that most people never reach. The soul drawn to yours is ${primaryTrait} — they won't rush you, won't overwhelm you, and when you first speak, it will feel less like meeting someone new and more like remembering someone you already knew.`,
+        blurredLines: [
+          `Their ${isYang ? "smile" : "eyes"} will be the first thing you notice — ████████ in a way that feels immediately...`,
+          `The ${element} resonance in your chart points to someone who █████████ rather than fills silence with...`,
+          `The sign that it’s them: a very specific moment involving ████████ that you will recognise because...`,
+        ],
+        hookLine: "Your soulmate portrait and full recognition guide are ready.",
+      };
+    })(),
     "future-baby-sketch": {
       headline: "A little soul is waiting...",
       preview: `The cosmic bond between you and your future child is already forming. With ${element} energy flowing through your chart, this child carries a spirit that mirrors your deepest values.`,

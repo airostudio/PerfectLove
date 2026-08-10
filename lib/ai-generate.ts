@@ -13,10 +13,24 @@ function getClient(): OpenAI {
 }
 
 function buildSketchPrompt(answers: Record<string, string>): string {
+  // sign/element are computed from the customer's real birth date (lib/zodiac-facts.ts)
+  // and describe the CUSTOMER's chart, which shapes the mood of the portrait.
+  // soulmate_gender/soulmate_traits describe who is actually depicted: their soulmate.
   const sign = answers.sun_sign || "Cancer";
   const element = answers.element || "Water";
-  const personality = answers.personality || "Introverted depth";
-  const soulWindow = answers.soul_window || "The Gaze";
+  const soulmateGender = answers.soulmate_gender || "Female";
+  const soulmateTraits = (answers.soulmate_traits || "").split(", ").filter(Boolean);
+
+  const genderTerm: Record<string, string> = {
+    Male: "man",
+    Female: "woman",
+    "Non-Binary": "non-binary person",
+    Other: "person",
+  };
+  const subject = genderTerm[soulmateGender] || "person";
+  const primaryTrait = soulmateTraits[0]
+    ? soulmateTraits[0].charAt(0).toLowerCase() + soulmateTraits[0].slice(1)
+    : "a quiet magnetism";
 
   const zodiacHint: Record<string, string> = {
     Aries: "a bold, direct energy in their bearing",
@@ -40,22 +54,23 @@ function buildSketchPrompt(answers: Record<string, string>): string {
     Water: "a quiet, fathomless depth — the kind of stillness that holds oceans",
   };
 
-  const featureHint =
-    soulWindow === "The Smile"
-      ? "a warm, unmistakable smile, soft at the corners of the mouth"
-      : "clear, expressive eyes with real focus and depth";
-
-  const presenceHint =
-    personality === "Introverted depth"
-      ? "facing three-quarters toward the viewer, calm and composed, gaze settled just past camera"
-      : "facing the viewer directly, open and present, chin slightly lifted";
+  // Fire/Air are the traditional "yang" (outward-facing) polarity signs,
+  // Earth/Water the "yin" (inward-facing) ones — used here to vary pose and
+  // expression in place of a self-reported personality answer.
+  const isYang = element === "Fire" || element === "Air";
+  const featureHint = isYang
+    ? "a warm, unmistakable smile, soft at the corners of the mouth"
+    : "clear, expressive eyes with real focus and depth";
+  const presenceHint = isYang
+    ? "facing the viewer directly, open and present, chin slightly lifted"
+    : "facing three-quarters toward the viewer, calm and composed, gaze settled just past camera";
 
   return (
-    `A loose, hand-drawn charcoal and pencil portrait sketch, strictly monochrome, no colour whatsoever. ` +
+    `A loose, hand-drawn charcoal and pencil portrait sketch of a ${subject}, strictly monochrome, no colour whatsoever. ` +
     `A recognizable likeness with clear facial structure and features, but rendered with a light, quick sketch touch — visible individual strokes, some edges left open or only suggested, the way a real sketch artist works. Not a smoothed-over, fully polished rendering. ` +
     `${presenceHint}. ` +
     `Their most striking feature: ${featureHint}. ` +
-    `Their bearing carries ${zodiacHint[sign] || "a quiet magnetism"}, layered with ${elementMood[element] || "a quiet, otherworldly presence"}. ` +
+    `They carry ${primaryTrait}, and ${zodiacHint[sign] || "a quiet magnetism"} layered with ${elementMood[element] || "a quiet, otherworldly presence"}. ` +
     `Background: simple and uncluttered, soft graduated shading fading to white. ` +
     `Atmosphere: intimate, warm, timeless — a portrait someone would want to frame and keep. ` +
     `No text, no labels, no watermarks, no colour. Monochrome pencil sketch portrait only.`

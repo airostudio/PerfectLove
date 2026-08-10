@@ -41,11 +41,13 @@ You write in the second person, speaking directly to the reader. Every detail sh
 Target audience: people who believe in astrology and soul-level connection, who are quietly hoping the universe sees them.
 Tone: intimate, unhurried, quietly certain — like a trusted friend who happens to see things others can't.
 Never be vague in a lazy way. Be vague in a deliberate way — specific enough to feel real, open enough for the reader to recognise their person.`,
-    user: (a) => `Write the full soulmate sketch reading for this person:
+    user: (a) => `Write the full soulmate sketch reading for this person${a.name ? `, named ${a.name}` : ""}:
 - Sun Sign: ${a.sun_sign}
 - Element: ${a.element}
-- Personality type: ${a.personality}
-- What draws them most: ${a.soul_window}
+- Ruling Planet: ${a.ruling_planet}
+- Their own cosmic strengths: ${a.cosmic_strengths}
+- Their soulmate's gender: ${a.soulmate_gender}
+- Traits their soulmate carries: ${a.soulmate_traits}
 
 The sketch has been drawn. Now write the accompanying reading that explains who this person is — not just what they look like, but who they ARE and how they will make the reader feel.
 
@@ -55,7 +57,7 @@ Return JSON with this exact structure:
   "sections": [
     {
       "heading": "The Detail That Will Tell You",
-      "content": "Describe the ONE physical or expressive detail that will make the reader certain. Base it on soul_window: if 'The Smile', describe how the smile appears slowly, changes the whole face, reaches the eyes last. If 'The Gaze', describe eyes that seem to rest on you like they've been waiting — like being seen by someone who is actually looking. Make it so specific the reader thinks: I know exactly what that looks like."
+      "content": "Describe the ONE physical or expressive detail that will make the reader certain — their eyes, their smile, the way they carry themselves. Ground it in these soulmate traits: ${a.soulmate_traits}. Make it so specific the reader thinks: I know exactly what that looks like."
     },
     {
       "heading": "How They'll Make You Feel",
@@ -67,7 +69,7 @@ Return JSON with this exact structure:
     },
     {
       "heading": "The Sign That It's Them",
-      "content": "Give one concrete, specific recognition sign — not a vague 'you'll just know.' Something situational or behavioral. E.g. 'They will disagree with you about something small in the first conversation — and instead of feeling defensive, you'll feel interested.' or 'They will ask you a question no one has ever asked you before.' Tailor it to the ${a.personality} trait. This is the detail the reader will tell their friends about."
+      "content": "Give one concrete, specific recognition sign — not a vague 'you'll just know.' Something situational or behavioral. E.g. 'They will disagree with you about something small in the first conversation — and instead of feeling defensive, you'll feel interested.' or 'They will ask you a question no one has ever asked you before.' Tailor it to these of the reader's own cosmic strengths: ${a.cosmic_strengths}. This is the detail the reader will tell their friends about."
     }
   ],
   "closing": "One sentence, spoken directly to the reader. Not inspirational — intimate. Like a whisper at the end of a reading. Something that acknowledges both the hope and the certainty. Should feel like something they'll write in their journal tonight."

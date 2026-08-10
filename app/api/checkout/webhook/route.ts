@@ -162,13 +162,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true });
     }
 
-    // Safe JSON parse of answers
+    // Answers are staged in pending_checkout_answers (see schema.sql section 6)
+    // since a richer quiz's JSON routinely exceeds Stripe's 500-char metadata cap.
     let answers: Record<string, unknown> = {};
-    try {
-      answers = JSON.parse(metadata.answers || "{}");
-    } catch (err) {
-      console.error("Failed to parse answers metadata:", err instanceof Error ? err.message : err);
-      // Continue — we'll store an empty answers object rather than fail the webhook
+    if (metadata.pending_answers_id) {
+      const { data: pending, error: pendingFetchError } = await getSupabase()
+        .from("pending_checkout_answers")
+        .select("answers")
+        .eq("id", metadata.pending_answers_id)
+        .maybeSingle();
+
+      if (pendingFetchError) {
+        console.error("Webhook: failed to fetch pending answers:", pendingFetchError.message);
+      } else if (pending) {
+        answers = pending.answers as Record<string, unknown>;
+      }
     }
 
     const readingId = metadata.reading_id || "unknown";
@@ -212,6 +220,17 @@ export async function POST(req: NextRequest) {
     if (insertError) {
       console.error(`Webhook: failed to insert order for session ${session.id}:`, insertError.message);
       return NextResponse.json({ error: "Failed to create order" }, { status: 500 });
+    }
+
+    if (metadata.pending_answers_id) {
+      // Best-effort cleanup — the staged row has already served its purpose.
+      const { error: cleanupError } = await getSupabase()
+        .from("pending_checkout_answers")
+        .delete()
+        .eq("id", metadata.pending_answers_id);
+      if (cleanupError) {
+        console.error("Webhook: failed to clean up pending answers:", cleanupError.message);
+      }
     }
   }
 

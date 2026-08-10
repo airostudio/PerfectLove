@@ -120,10 +120,18 @@ export async function POST(req: NextRequest) {
       ? `PerfectLove — ${readingName} (Express 30-min Delivery)`
       : `PerfectLove — ${readingName}`;
 
-    const answersJson = JSON.stringify(answers);
-    if (answersJson.length > 490) {
-      // Stripe metadata values are capped at 500 characters
-      return NextResponse.json({ error: "Quiz answers too large to process. Please try again." }, { status: 400 });
+    // Stripe metadata values are capped at 500 characters, which richer quiz
+    // flows can exceed once JSON-serialized — so answers are staged in the DB
+    // and only their row id travels through metadata (see schema.sql section 6).
+    const { data: pendingAnswers, error: pendingError } = await getSupabase()
+      .from("pending_checkout_answers")
+      .insert({ answers: answersObj })
+      .select("id")
+      .single();
+
+    if (pendingError || !pendingAnswers) {
+      console.error("Checkout: failed to stage answers:", pendingError?.message);
+      return NextResponse.json({ error: "Failed to start checkout" }, { status: 500 });
     }
 
     const session = await getStripe().checkout.sessions.create({
@@ -140,7 +148,7 @@ export async function POST(req: NextRequest) {
         },
       ],
       metadata: {
-        answers: answersJson,
+        pending_answers_id: pendingAnswers.id,
         reading_id: readingId,
         delivery_type: isExpress ? "express" : "standard",
       },

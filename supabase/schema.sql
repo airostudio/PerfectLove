@@ -135,3 +135,24 @@ create policy "Service role write access" on storage.objects
 -- that still need it.
 update public.orders set email = lower(trim(email)) where email <> lower(trim(email));
 update public.subscriptions set email = lower(trim(email)) where email <> lower(trim(email));
+
+-- ── 6. Pending checkout answers ─────────────────────────────────────────────
+-- Stripe Checkout session metadata is capped at 500 characters per value, and
+-- richer quiz flows (e.g. soulmate-sketch's name/gender/birth-detail/zodiac
+-- fields) routinely exceed that once JSON-serialized. Answers are staged here
+-- before redirecting to Stripe; only this row's id travels through metadata.
+-- The webhook reads the answers back and deletes the row once the order is
+-- created. Orphaned rows from abandoned checkouts are harmless and small.
+create table if not exists public.pending_checkout_answers (
+  id uuid default gen_random_uuid() primary key,
+  answers jsonb not null,
+  created_at timestamptz default now() not null
+);
+
+alter table public.pending_checkout_answers enable row level security;
+
+drop policy if exists "Service role full access" on public.pending_checkout_answers;
+create policy "Service role full access" on public.pending_checkout_answers
+  for all
+  using (auth.role() = 'service_role')
+  with check (auth.role() = 'service_role');
