@@ -2,8 +2,9 @@ import type { NextConfig } from "next";
 
 const csp = [
   "default-src 'self'",
-  // Next.js requires unsafe-inline for inline scripts during hydration
-  "script-src 'self' 'unsafe-inline' https://js.stripe.com",
+  // Next.js requires unsafe-inline for inline scripts during hydration.
+  // googletagmanager.com serves the gtag.js loader for Google Analytics.
+  "script-src 'self' 'unsafe-inline' https://js.stripe.com https://www.googletagmanager.com",
   // Tailwind CSS and Framer Motion inject inline styles; Google Fonts stylesheet
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   // Sketch images are re-hosted in Supabase Storage after generation (DALL-E's
@@ -12,7 +13,9 @@ const csp = [
   // Google Fonts serves font files from fonts.gstatic.com
   "font-src 'self' https://fonts.gstatic.com",
   "frame-src https://js.stripe.com",
-  "connect-src 'self' https://api.stripe.com https://*.supabase.co wss://*.supabase.co",
+  // *.google-analytics.com and *.analytics.google.com are where gtag.js
+  // actually sends pageview/event hits, not just the googletagmanager.com loader
+  "connect-src 'self' https://api.stripe.com https://*.supabase.co wss://*.supabase.co https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
