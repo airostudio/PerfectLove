@@ -415,12 +415,15 @@ export default function LandingPage() {
           <Link href="/auth" className="hover:text-orchid transition-colors">
             Sign In
           </Link>
-          <a href="#how-it-works" className="hover:text-orchid transition-colors">
+          <Link href="/how-it-works" className="hover:text-orchid transition-colors">
             How It Works
-          </a>
-          <a href="#" className="hover:text-orchid transition-colors">
+          </Link>
+          <Link href="/terms" className="hover:text-orchid transition-colors">
+            Terms
+          </Link>
+          <Link href="/privacy" className="hover:text-orchid transition-colors">
             Privacy
-          </a>
+          </Link>
         </div>
       </footer>
     </main>

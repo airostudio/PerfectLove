@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   creator: "PerfectLove",
   publisher: "PerfectLove",
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL || "https://perfectlove.co"
+    process.env.NEXT_PUBLIC_APP_URL || "https://perfectlove.site"
   ),
   alternates: { canonical: "/" },
   openGraph: {
@@ -74,7 +74,7 @@ export const metadata: Metadata = {
 
 function JsonLd() {
   const appUrl =
-    process.env.NEXT_PUBLIC_APP_URL || "https://perfectlove.co";
+    process.env.NEXT_PUBLIC_APP_URL || "https://perfectlove.site";
 
   const organizationSchema = {
     "@context": "https://schema.org",
