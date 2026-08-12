@@ -2,8 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
 import { getSupabase } from "@/lib/supabase";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const { allowed } = checkRateLimit(`archive:${ip}`);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      { status: 429 }
+    );
+  }
+
   try {
     const body = await req.json().catch(() => null);
     if (!body || typeof body !== "object") {

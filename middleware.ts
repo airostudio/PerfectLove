@@ -1,14 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-
-function timingSafeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i++) {
-    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  }
-  return diff === 0;
-}
+import { timingSafeEqual } from "@/lib/timing-safe-equal";
 
 function isAdminAuthenticated(req: NextRequest): boolean {
   const secret = process.env.ADMIN_SECRET;
@@ -60,7 +52,14 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // User auth protection disabled during development — re-enable here when ready
+  // No middleware-level gate for /dashboard, /reading, or /auth — by design,
+  // not because it's disabled. /dashboard checks the session itself
+  // (app/dashboard/page.tsx) and scopes its query to that session's email.
+  // /reading/view/[orderId] is an intentionally unauthenticated capability
+  // link (mailed to purchasers, keyed by an unguessable UUID) so it works
+  // without requiring sign-in. If a future route under these matcher paths
+  // needs real access control, add it explicitly here or in the route/page
+  // itself — don't assume this middleware already covers it.
   return res;
 }
 

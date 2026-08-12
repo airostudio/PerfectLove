@@ -11,6 +11,22 @@ import { getTarotCardImageUrl } from "@/lib/tarot-images";
 
 const GOLD = "#d4af37";
 
+// Every value embedded below can ultimately trace back to AI-generated
+// content (reading text, tarot card names) — the model's output is only
+// validated for JSON *shape*, never for safe HTML content, so a prompt
+// injection could otherwise land raw markup in an email and in the
+// dangerouslySetInnerHTML render at /reading/view/[orderId]. Escape
+// everything at the boundary rather than trying to reason per-caller about
+// which values are "safe" today.
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 const divider = (width = 72) =>
   `<div style="height:1px; width:${width}px; margin:24px auto; background-color:${GOLD}; background-image:linear-gradient(90deg, transparent, ${GOLD} 50%, transparent);"></div>`;
 
@@ -23,12 +39,12 @@ function header(): string {
 }
 
 function heroTitle(title: string): string {
-  return `<h1 style="font-size:28px; font-weight:normal; text-align:center; color:#ede4d8; margin:8px 0 16px; line-height:1.3;">${title}</h1>`;
+  return `<h1 style="font-size:28px; font-weight:normal; text-align:center; color:#ede4d8; margin:8px 0 16px; line-height:1.3;">${escapeHtml(title)}</h1>`;
 }
 
 function metaBar(sign: string, element: string, isExpress: boolean): string {
   const pill = (text: string) =>
-    `<span style="display:inline-block; background:#1a0f2e; border:1px solid #2d1f45; border-radius:999px; padding:6px 16px; font-size:11px; letter-spacing:0.06em; color:#c084fc; margin:0 3px;">${text}</span>`;
+    `<span style="display:inline-block; background:#1a0f2e; border:1px solid #2d1f45; border-radius:999px; padding:6px 16px; font-size:11px; letter-spacing:0.06em; color:#c084fc; margin:0 3px;">${escapeHtml(text)}</span>`;
   return `<div style="text-align:center; margin:0 0 32px;">${pill(sign)}${pill(element)}${isExpress ? pill("⚡ Express") : ""}</div>`;
 }
 
@@ -37,40 +53,43 @@ function heroImage(url: string, caption: string, subcaption: string): string {
   // remote images by default (common for any newly-verified sending domain)
   // render a properly-sized placeholder with the alt text visible, instead
   // of a near-invisible sliver that looks like a broken link.
+  const safeCaption = escapeHtml(caption);
   return `<div style="text-align:center; margin:0 0 36px;">
-    <p style="font-size:10px; letter-spacing:0.35em; text-transform:uppercase; color:#7a6d8a; margin:0 0 16px;">${caption}</p>
-    <img src="${url}" alt="${caption}" width="480" height="480" style="width:100%; max-width:480px; height:auto; border-radius:14px; border:1px solid #2d1f45;" />
-    <p style="font-size:11px; color:#7a6d8a; margin:14px 0 0; font-style:italic;">${subcaption}</p>
+    <p style="font-size:10px; letter-spacing:0.35em; text-transform:uppercase; color:#7a6d8a; margin:0 0 16px;">${safeCaption}</p>
+    <img src="${escapeHtml(url)}" alt="${safeCaption}" width="480" height="480" style="width:100%; max-width:480px; height:auto; border-radius:14px; border:1px solid #2d1f45;" />
+    <p style="font-size:11px; color:#7a6d8a; margin:14px 0 0; font-style:italic;">${escapeHtml(subcaption)}</p>
   </div>`;
 }
 
 function paragraph(text: string): string {
-  return `<p style="font-size:15px; line-height:1.8; color:#b8a9c4; margin:0 0 18px;">${text}</p>`;
+  return `<p style="font-size:15px; line-height:1.8; color:#b8a9c4; margin:0 0 18px;">${escapeHtml(text)}</p>`;
 }
 
 function section(heading: string, content: string, cardImageUrl?: string | null, cardName?: string): string {
+  const safeHeading = escapeHtml(heading);
+  const safeCardName = cardName ? escapeHtml(cardName) : undefined;
   const cardBlock = cardImageUrl
     ? `<div style="text-align:center; margin:12px 0 18px;">
-         <img src="${cardImageUrl}" alt="${cardName ?? heading}" width="170" height="255" style="width:170px; max-width:55%; height:auto; border-radius:12px; border:1px solid ${GOLD};" />
-         ${cardName ? `<p style="font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:${GOLD}; margin:10px 0 0;">${cardName}</p>` : ""}
+         <img src="${escapeHtml(cardImageUrl)}" alt="${safeCardName ?? safeHeading}" width="170" height="255" style="width:170px; max-width:55%; height:auto; border-radius:12px; border:1px solid ${GOLD};" />
+         ${safeCardName ? `<p style="font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:${GOLD}; margin:10px 0 0;">${safeCardName}</p>` : ""}
        </div>`
     : "";
   return `<div style="margin:0 0 30px; padding:2px 0 2px 18px; border-left:2px solid #2d1f45;">
-    <h2 style="font-size:14px; font-weight:normal; letter-spacing:0.08em; text-transform:uppercase; color:#f0c050; margin:0 0 14px;">${heading}</h2>
+    <h2 style="font-size:14px; font-weight:normal; letter-spacing:0.08em; text-transform:uppercase; color:#f0c050; margin:0 0 14px;">${safeHeading}</h2>
     ${cardBlock}
-    <p style="font-size:15px; line-height:1.8; color:#b8a9c4; margin:0;">${content}</p>
+    <p style="font-size:15px; line-height:1.8; color:#b8a9c4; margin:0;">${escapeHtml(content)}</p>
   </div>`;
 }
 
 function closingQuote(text: string): string {
   return `<div style="background:#110820; border:1px solid #2d1f45; border-left:3px solid ${GOLD}; border-radius:10px; padding:22px 26px; margin:30px 0 0;">
-    <p style="font-size:13px; font-style:italic; color:#c084fc; margin:0; line-height:1.8;">${text}</p>
+    <p style="font-size:13px; font-style:italic; color:#c084fc; margin:0; line-height:1.8;">${escapeHtml(text)}</p>
   </div>`;
 }
 
 function footer(viewOnlineUrl?: string): string {
   const link = viewOnlineUrl
-    ? `<p style="text-align:center; margin:0 0 18px;"><a href="${viewOnlineUrl}" style="color:#c084fc; font-size:12px; text-decoration:none; letter-spacing:0.02em;">View this reading in your dashboard →</a></p>`
+    ? `<p style="text-align:center; margin:0 0 18px;"><a href="${escapeHtml(viewOnlineUrl)}" style="color:#c084fc; font-size:12px; text-decoration:none; letter-spacing:0.02em;">View this reading in your dashboard →</a></p>`
     : "";
   return `${divider(40)}${link}<p style="font-size:12px; color:#7a6d8a; text-align:center; margin:0;">With love, The PerfectLove Team ✦</p>`;
 }

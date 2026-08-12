@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
+import { getSupabase } from "@/lib/supabase";
 import { establishSessionForEmail } from "@/lib/auth-session";
 
 // Every Stripe success_url routes through here first so the purchaser's
@@ -23,15 +24,27 @@ export async function GET(req: NextRequest) {
     const session = await getStripe().checkout.sessions.retrieve(sessionId);
 
     if (session.status === "complete") {
-      // Prefer metadata.customer_email — it's the exact email the order/subscription
-      // was recorded under in the webhook (the signed-in identity that started
-      // checkout). Falls back to what Stripe collected only when metadata wasn't set
-      // (anonymous individual reading purchases).
-      const rawEmail = session.metadata?.customer_email || session.customer_details?.email;
-      if (rawEmail) {
-        const { error } = await establishSessionForEmail(rawEmail);
-        if (error) {
-          console.error("checkout/complete: failed to establish session:", error);
+      // A completed session_id doesn't expire and can leak (browser history,
+      // referrers, screenshots) — so it must only ever be usable ONCE to sign
+      // in, not treated as a standing credential. This insert is the gate:
+      // it succeeds only the first time this session_id is seen.
+      const { error: consumeError } = await getSupabase()
+        .from("consumed_checkout_sessions")
+        .insert({ session_id: sessionId });
+
+      if (consumeError) {
+        console.error(`checkout/complete: refusing to establish session — session_id already consumed or DB error for ${sessionId}:`, consumeError.message);
+      } else {
+        // Prefer metadata.customer_email — it's the exact email the order/subscription
+        // was recorded under in the webhook (the signed-in identity that started
+        // checkout). Falls back to what Stripe collected only when metadata wasn't set
+        // (anonymous individual reading purchases).
+        const rawEmail = session.metadata?.customer_email || session.customer_details?.email;
+        if (rawEmail) {
+          const { error } = await establishSessionForEmail(rawEmail);
+          if (error) {
+            console.error("checkout/complete: failed to establish session:", error);
+          }
         }
       }
     }

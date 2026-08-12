@@ -156,3 +156,26 @@ create policy "Service role full access" on public.pending_checkout_answers
   for all
   using (auth.role() = 'service_role')
   with check (auth.role() = 'service_role');
+
+-- ── 7. Consumed checkout sessions ───────────────────────────────────────────
+-- /api/checkout/complete signs the purchaser's browser in based solely on a
+-- Stripe session_id from the URL — necessary since that's the only identity
+-- signal available right after checkout, before any auth cookie exists. But
+-- a completed session_id is a durable value (Stripe doesn't expire it), and
+-- can leak via browser history, referrer headers, screenshots, or logs — so
+-- without this table, anyone who obtains one could sign in as that customer
+-- indefinitely, any number of times. Inserting into this table before
+-- establishing a session makes it one-time-use: the first (legitimate) hit
+-- succeeds, every replay hits the unique constraint and is refused.
+create table if not exists public.consumed_checkout_sessions (
+  session_id text primary key,
+  consumed_at timestamptz default now() not null
+);
+
+alter table public.consumed_checkout_sessions enable row level security;
+
+drop policy if exists "Service role full access" on public.consumed_checkout_sessions;
+create policy "Service role full access" on public.consumed_checkout_sessions
+  for all
+  using (auth.role() = 'service_role')
+  with check (auth.role() = 'service_role');

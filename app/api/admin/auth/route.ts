@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
+import { timingSafeEqual } from "@/lib/timing-safe-equal";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const { allowed } = checkRateLimit(`admin-auth:${ip}`);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Too many attempts. Please try again later." },
+      { status: 429 }
+    );
+  }
+
   const body = await req.json().catch(() => null);
   const secret = body?.secret as string | undefined;
   const adminSecret = process.env.ADMIN_SECRET;
@@ -9,7 +20,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Admin not configured" }, { status: 503 });
   }
 
-  if (!secret || secret !== adminSecret) {
+  if (!secret || !timingSafeEqual(secret, adminSecret)) {
     return NextResponse.json({ error: "Invalid secret" }, { status: 401 });
   }
 
