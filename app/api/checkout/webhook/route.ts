@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
       const orderId = metadata.order_id;
       if (!orderId) {
         console.error("Webhook: archive_retrieval missing order_id in metadata");
-        return NextResponse.json({ received: true });
+        return NextResponse.json({ error: "Missing order_id" }, { status: 400 });
       }
 
       const newExpiresAt = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString();
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
       const orderId = metadata.order_id;
       if (!orderId) {
         console.error("Webhook: express_upgrade missing order_id in metadata");
-        return NextResponse.json({ received: true });
+        return NextResponse.json({ error: "Missing order_id" }, { status: 400 });
       }
 
       const { error: upgradeError } = await getSupabase()
@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
       const rawEmail = metadata.customer_email || session.customer_details?.email;
       if (!rawEmail || !isValidEmail(rawEmail)) {
         console.error("Webhook: bundle missing email");
-        return NextResponse.json({ received: true });
+        return NextResponse.json({ error: "Missing or invalid email" }, { status: 400 });
       }
       const customerEmail = normalizeEmail(rawEmail);
       // Idempotency: skip if already processed
@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
         typeof customerId !== "string"
       ) {
         console.error("Webhook: tarot_astrology_sub missing email or subscription/customer id");
-        return NextResponse.json({ received: true });
+        return NextResponse.json({ error: "Missing email or subscription/customer id" }, { status: 400 });
       }
       const customerEmail = normalizeEmail(rawEmail);
 
@@ -183,8 +183,12 @@ export async function POST(req: NextRequest) {
     const rawEmail = session.customer_details?.email;
 
     if (!rawEmail || !isValidEmail(rawEmail)) {
-      console.error(`Webhook: invalid or missing email for session ${session.id}`);
-      return NextResponse.json({ received: true });
+      // Was previously swallowed as {received:true} (200) — Stripe took that
+      // as "handled successfully" and never retried, so a genuinely failed
+      // order left zero trace anywhere except this log line. Returning an
+      // error surfaces it as a failed delivery in the Stripe dashboard.
+      console.error(`Webhook: invalid or missing email for session ${session.id} (reading_id=${readingId}, customer_details=${JSON.stringify(session.customer_details)})`);
+      return NextResponse.json({ error: "Missing or invalid customer email" }, { status: 400 });
     }
     const email = normalizeEmail(rawEmail);
 

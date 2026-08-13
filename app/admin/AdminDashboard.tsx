@@ -75,6 +75,26 @@ export default function AdminDashboard({ orders }: { orders: OrderRecord[] }) {
     loading: new Set(),
     results: new Map(),
   });
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+
+  const handleDelete = useCallback(async (orderId: string, email: string) => {
+    if (!confirm(`Delete this order (${email})? This can't be undone.`)) return;
+
+    setDeletingIds((prev) => new Set([...prev, orderId]));
+    const res = await fetch(`/api/admin/orders/${orderId}`, { method: "DELETE" });
+
+    if (res.ok) {
+      router.refresh();
+    } else {
+      const data = await res.json().catch(() => ({}));
+      alert(`Failed to delete: ${data.error ?? "Unknown error"}`);
+      setDeletingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(orderId);
+        return next;
+      });
+    }
+  }, [router]);
 
   const totalRevenue = orders.reduce((s, o) => s + o.amount_paid, 0);
   const delivered = orders.filter((o) => o.status === "delivered").length;
@@ -230,19 +250,28 @@ export default function AdminDashboard({ orders }: { orders: OrderRecord[] }) {
                             <td className="px-4 py-3 text-xs text-ash whitespace-nowrap">{fmtDate(order.created_at)}</td>
                             <td className="px-4 py-3 text-xs text-ash whitespace-nowrap">{fmtDateTime(order.delivery_at)}</td>
                             <td className="px-4 py-3">
-                              {result === "ok" ? (
-                                <span className="text-xs text-emerald-400">Sent ✓</span>
-                              ) : result ? (
-                                <span className="text-xs text-red-400" title={result}>Failed</span>
-                              ) : (
+                              <div className="flex items-center gap-3">
+                                {result === "ok" ? (
+                                  <span className="text-xs text-emerald-400">Sent ✓</span>
+                                ) : result ? (
+                                  <span className="text-xs text-red-400" title={result}>Failed</span>
+                                ) : (
+                                  <button
+                                    onClick={() => handleDeliver(order.id)}
+                                    disabled={isLoading}
+                                    className="text-xs text-orchid hover:text-bone transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                                  >
+                                    {isLoading ? "Sending…" : order.status === "delivered" ? "Re-deliver" : "Deliver Now"}
+                                  </button>
+                                )}
                                 <button
-                                  onClick={() => handleDeliver(order.id)}
-                                  disabled={isLoading}
-                                  className="text-xs text-orchid hover:text-bone transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                                  onClick={() => handleDelete(order.id, order.email)}
+                                  disabled={deletingIds.has(order.id)}
+                                  className="text-xs text-ash hover:text-red-400 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                                 >
-                                  {isLoading ? "Sending…" : order.status === "delivered" ? "Re-deliver" : "Deliver Now"}
+                                  {deletingIds.has(order.id) ? "…" : "Delete"}
                                 </button>
-                              )}
+                              </div>
                             </td>
                           </tr>
                         );
