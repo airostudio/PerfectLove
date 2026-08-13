@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { Suspense } from "react";
 import GoogleAnalyticsPageview from "@/components/GoogleAnalyticsPageview";
+import { DiscountProvider } from "@/components/DiscountProvider";
 import "./globals.css";
 
 const GA_MEASUREMENT_ID = "G-Y963BC6PMT";
@@ -240,7 +241,9 @@ export default function RootLayout({
         <div className="nebula nebula-1" />
         <div className="nebula nebula-2" />
         <div className="nebula nebula-3" />
-        <div className="relative z-10">{children}</div>
+        <DiscountProvider>
+          <div className="relative z-10">{children}</div>
+        </DiscountProvider>
       </body>
     </html>
   );

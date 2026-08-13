@@ -3,6 +3,9 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { getTeaser } from "@/lib/teasers";
+import { useDiscount } from "@/components/DiscountProvider";
+import { applyDiscount } from "@/lib/new-user-discount";
+import CountdownTimer from "@/components/CountdownTimer";
 import type { Reading } from "@/lib/readings";
 
 interface TeaserPreviewProps {
@@ -26,8 +29,16 @@ export default function TeaserPreview({ reading, answers }: TeaserPreviewProps) 
   const isSketch = reading.expressAvailable === true;
   const EXPRESS_PRICE = 1499; // $14.99
 
-  const displayPrice =
-    isSketch && deliveryType === "express" ? EXPRESS_PRICE : reading.price;
+  // New-visitor discount applies to standard delivery only — Express stays
+  // full price. The actual charge is always recomputed server-side from the
+  // same first-visit cookie in /api/checkout; this is display only.
+  const { percent: discountPercent, tierEndsAt } = useDiscount();
+  const isExpressSelected = isSketch && deliveryType === "express";
+  const standardPrice = applyDiscount(reading.price, discountPercent);
+  const hasStandardDiscount = discountPercent > 0;
+  const showDiscountOnSummary = hasStandardDiscount && !isExpressSelected;
+
+  const displayPrice = isExpressSelected ? EXPRESS_PRICE : standardPrice;
 
   const submitUnlock = async () => {
     setLoading(true);
@@ -175,7 +186,15 @@ export default function TeaserPreview({ reading, answers }: TeaserPreviewProps) 
                 >
                   <span className="block font-medium">Standard</span>
                   <span className="text-xs opacity-70">
-                    24 hours &middot; {formatPrice(reading.price)}
+                    24 hours &middot;{" "}
+                    {hasStandardDiscount ? (
+                      <>
+                        <span className="line-through opacity-60">{formatPrice(reading.price)}</span>{" "}
+                        {formatPrice(standardPrice)}
+                      </>
+                    ) : (
+                      formatPrice(reading.price)
+                    )}
                   </span>
                 </button>
                 <button
@@ -196,6 +215,25 @@ export default function TeaserPreview({ reading, answers }: TeaserPreviewProps) 
           )}
 
           <div className="mb-6">
+            {showDiscountOnSummary && (
+              <p className="mb-2">
+                <span className="inline-block bg-gold/10 border border-gold/30 text-gold text-xs font-medium px-3 py-1.5 rounded-full">
+                  ✦ {discountPercent}% New Visitor Discount
+                  {tierEndsAt && (
+                    <>
+                      {" "}
+                      &middot; ends in{" "}
+                      <CountdownTimer target={tierEndsAt} expiredLabel="ending soon" />
+                    </>
+                  )}
+                </span>
+              </p>
+            )}
+            {showDiscountOnSummary && (
+              <span className="text-mist/40 text-lg line-through mr-2">
+                {formatPrice(reading.price)}
+              </span>
+            )}
             <span className="text-4xl font-serif text-bone">
               {formatPrice(displayPrice)}
             </span>

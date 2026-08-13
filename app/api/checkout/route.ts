@@ -10,6 +10,7 @@ import { getSupabaseServer } from "@/lib/supabase-server";
 import { hasActiveSubscription, isSubscriptionGatedCategory } from "@/lib/subscriptions";
 import { normalizeEmail } from "@/lib/email";
 import { computeDeliveryAt, EXPRESS_PRICE_CENTS } from "@/lib/delivery-timing";
+import { FIRST_SEEN_COOKIE, getDiscountForFirstSeen, applyDiscount } from "@/lib/new-user-discount";
 
 export async function POST(req: NextRequest) {
   // Rate limit by IP
@@ -110,7 +111,17 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const price = isExpress ? EXPRESS_PRICE_CENTS : reading.price;
+    // New-visitor discount: 50%/35%/20% over three 3-day tiers from first
+    // visit, individual (non-express) readings only. Derived here straight
+    // from the httpOnly cookie — never from anything the client claims —
+    // so the actual charge can't be manipulated by a tampered request body.
+    const firstSeenRaw = req.cookies.get(FIRST_SEEN_COOKIE)?.value;
+    const firstSeenMs = firstSeenRaw ? Number(firstSeenRaw) : NaN;
+    const validFirstSeen = Number.isFinite(firstSeenMs) && firstSeenMs > 0 && firstSeenMs <= Date.now();
+    const discountPercent = !isExpress && validFirstSeen ? getDiscountForFirstSeen(firstSeenMs).percent : 0;
+
+    const basePrice = isExpress ? EXPRESS_PRICE_CENTS : reading.price;
+    const price = applyDiscount(basePrice, discountPercent);
 
     const readingName = readingId
       .replace(/-/g, " ")
@@ -118,6 +129,8 @@ export async function POST(req: NextRequest) {
 
     const productName = isExpress
       ? `PerfectLove — ${readingName} (Express 30-min Delivery)`
+      : discountPercent > 0
+      ? `PerfectLove — ${readingName} (${discountPercent}% New Visitor Discount)`
       : `PerfectLove — ${readingName}`;
 
     // Stripe metadata values are capped at 500 characters, which richer quiz
