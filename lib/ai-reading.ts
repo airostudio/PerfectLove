@@ -20,7 +20,7 @@ interface ReadingSection {
   card?: string; // exact card name from TAROT_DECK — tarot readings only
 }
 
-interface GeneratedReading {
+export interface GeneratedReading {
   intro: string;
   sections: ReadingSection[];
   closing: string;

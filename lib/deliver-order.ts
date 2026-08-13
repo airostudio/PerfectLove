@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 import { getSupabase } from "@/lib/supabase";
 import { generateSoulmateSketch } from "@/lib/ai-generate";
-import { generateReadingContent } from "@/lib/ai-reading";
+import { generateReadingContent, type GeneratedReading } from "@/lib/ai-reading";
 import { getTarotCardImageUrl } from "@/lib/tarot-images";
 
 // ── Email HTML building blocks ──────────────────────────────────────────────
@@ -140,6 +140,7 @@ export interface EmailOrder {
   delivery_type: string;
   image_url?: string | null;
   order_id?: string;
+  ai: GeneratedReading;
 }
 
 const SKETCH_READING_IDS = new Set(["soulmate-sketch", "future-baby-sketch"]);
@@ -152,7 +153,7 @@ const sketchCaption: Record<string, string> = {
 export async function buildEmail(
   order: EmailOrder
 ): Promise<{ subject: string; html: string }> {
-  const { reading_id, answers, delivery_type, image_url, order_id } = order;
+  const { reading_id, answers, delivery_type, image_url, order_id, ai } = order;
   const sign = answers.sun_sign || "your sign";
   const element = answers.element || "your element";
   const isExpress = delivery_type === "express";
@@ -160,15 +161,6 @@ export async function buildEmail(
   const title = meta?.title ?? reading_id.replace(/-/g, " ");
   const subject = meta?.subject(isExpress) ?? `✨ Your PerfectLove Reading is Ready`;
   const isSketchReading = SKETCH_READING_IDS.has(reading_id);
-
-  if (isSketchReading && !image_url) {
-    throw new Error(`Sketch image is missing for ${reading_id} — refusing to send an email without it`);
-  }
-
-  const ai = await generateReadingContent(reading_id, answers);
-  if (!ai) {
-    throw new Error(`AI reading content generation failed for ${reading_id}`);
-  }
 
   // Resolve any drawn tarot cards to images in parallel — best-effort, a
   // missing image just means that section renders without one.
@@ -210,18 +202,33 @@ export async function processOrder(
 ): Promise<void> {
   const orderId = order.id as string;
   const readingId = order.reading_id as string;
+  const answers = order.answers as Record<string, string>;
+  const isSketchReading = SKETCH_READING_IDS.has(readingId);
 
-  let image_url: string | null = null;
-  if (SKETCH_READING_IDS.has(readingId)) {
-    image_url = await generateSoulmateSketch(order.answers as Record<string, string>, readingId);
+  // Image generation and reading-text generation are independent OpenAI
+  // calls — running them sequentially was routinely pushing sketch orders
+  // close to (or past) the function's time limit with no useful error to
+  // show for it. In parallel, total wait time is roughly the slower of the
+  // two instead of the sum of both.
+  const [image_url, ai] = await Promise.all([
+    isSketchReading ? generateSoulmateSketch(answers, readingId) : Promise.resolve(null),
+    generateReadingContent(readingId, answers),
+  ]);
+
+  if (isSketchReading && !image_url) {
+    throw new Error(`Sketch image is missing for ${readingId} — refusing to send an email without it`);
+  }
+  if (!ai) {
+    throw new Error(`AI reading content generation failed for ${readingId}`);
   }
 
   const { subject, html } = await buildEmail({
     reading_id: readingId,
-    answers: order.answers as Record<string, string>,
+    answers,
     delivery_type: order.delivery_type as string,
     image_url,
     order_id: orderId,
+    ai,
   });
 
   const recipientEmail = order.email as string;

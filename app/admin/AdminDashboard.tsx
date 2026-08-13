@@ -113,18 +113,34 @@ export default function AdminDashboard({ orders }: { orders: OrderRecord[] }) {
       results: prev.results,
     }));
 
-    const res = await fetch(`/api/admin/deliver/${orderId}`, { method: "POST" });
-    const data = await res.json().catch(() => ({}));
+    let message: string;
+    let ok = false;
+    try {
+      const res = await fetch(`/api/admin/deliver/${orderId}`, { method: "POST" });
+      ok = res.ok;
+      if (res.ok) {
+        message = "ok";
+      } else {
+        // A timeout/gateway error returns an HTML error page, not JSON — .json()
+        // throws in that case, and without this the row just said "Failed" with
+        // nothing else to go on (this is exactly what happened investigating a
+        // sketch delivery that had no error code or explanation).
+        const data = await res.json().catch(() => null);
+        message = data?.error ?? `Failed (HTTP ${res.status}${res.status === 504 ? " — timed out" : ""})`;
+      }
+    } catch (err) {
+      message = `Connection error: ${err instanceof Error ? err.message : String(err)}`;
+    }
 
     setDeliverState((prev) => {
       const next = new Set(prev.loading);
       next.delete(orderId);
       const results = new Map(prev.results);
-      results.set(orderId, res.ok ? "ok" : (data.error ?? "Failed"));
+      results.set(orderId, ok ? "ok" : message);
       return { loading: next, results };
     });
 
-    if (res.ok) router.refresh();
+    if (ok) router.refresh();
   }, [router]);
 
   const handleLogout = async () => {

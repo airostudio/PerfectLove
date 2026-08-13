@@ -5,6 +5,13 @@ import { validateEnv } from "@/lib/env";
 import { Resend } from "resend";
 import { processOrder } from "@/lib/deliver-order";
 
+// This route had no explicit duration limit at all — it processes every
+// order due for delivery in a single invocation (Promise.allSettled over
+// the whole batch), each involving one or two OpenAI calls, so a busy
+// 5-minute window could realistically run long. Match the admin route's
+// ceiling rather than leaving it on Vercel's default.
+export const maxDuration = 120;
+
 export async function GET(req: NextRequest) {
   try { validateEnv(); } catch (err) {
     console.error("Cron: env validation failed:", err instanceof Error ? err.message : err);
