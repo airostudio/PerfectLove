@@ -179,3 +179,26 @@ create policy "Service role full access" on public.consumed_checkout_sessions
   for all
   using (auth.role() = 'service_role')
   with check (auth.role() = 'service_role');
+
+-- ── 8. Partner redemption codes ─────────────────────────────────────────────
+-- Single-use codes handed out to partner sites (e.g. EvalOtter) so their
+-- users can redeem free access to PerfectLove's Complete Reading Collection.
+-- assigned_email is optional: set it to lock a specific code to one email
+-- (redemption with any other email is rejected as email_mismatch); leave it
+-- null for a generic code any redeemer can claim under their own email.
+create table if not exists public.partner_redemption_codes (
+  code text primary key,
+  partner text,
+  assigned_email text,
+  redeemed_at timestamptz,
+  redeemed_email text,
+  created_at timestamptz default now() not null
+);
+
+alter table public.partner_redemption_codes enable row level security;
+
+drop policy if exists "Service role full access" on public.partner_redemption_codes;
+create policy "Service role full access" on public.partner_redemption_codes
+  for all
+  using (auth.role() = 'service_role')
+  with check (auth.role() = 'service_role');

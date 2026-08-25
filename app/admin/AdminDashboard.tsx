@@ -1,12 +1,21 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { OrderRecord } from "@/lib/supabase";
 import { readingMeta } from "@/lib/deliver-order";
 
 type Filter = "all" | "processing" | "delivered" | "overdue";
-type Tab = "orders" | "marketing";
+type Tab = "orders" | "marketing" | "partners";
+
+interface PartnerCode {
+  code: string;
+  partner: string | null;
+  assigned_email: string | null;
+  redeemed_at: string | null;
+  redeemed_email: string | null;
+  created_at: string;
+}
 
 function isOverdue(order: OrderRecord): boolean {
   return order.status === "processing" && new Date(order.delivery_at) < new Date();
@@ -95,6 +104,66 @@ export default function AdminDashboard({ orders }: { orders: OrderRecord[] }) {
       });
     }
   }, [router]);
+
+  // ── Partner redemption codes ──────────────────────────────────────────────
+  const [partnerCodes, setPartnerCodes] = useState<PartnerCode[]>([]);
+  const [partnerLoading, setPartnerLoading] = useState(true);
+  const [genPartner, setGenPartner] = useState("");
+  const [genEmail, setGenEmail] = useState("");
+  const [genCount, setGenCount] = useState(1);
+  const [generating, setGenerating] = useState(false);
+  const [genError, setGenError] = useState("");
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+
+  const loadPartnerCodes = useCallback(async () => {
+    setPartnerLoading(true);
+    try {
+      const res = await fetch("/api/admin/partner-codes");
+      const data = await res.json();
+      setPartnerCodes(res.ok ? data.codes ?? [] : []);
+    } finally {
+      setPartnerLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadPartnerCodes();
+  }, [loadPartnerCodes]);
+
+  const handleGenerate = useCallback(async () => {
+    setGenerating(true);
+    setGenError("");
+    try {
+      const res = await fetch("/api/admin/partner-codes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          partner: genPartner || undefined,
+          assignedEmail: genEmail || undefined,
+          count: genCount,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setGenError(data.error ?? "Failed to generate");
+      } else {
+        setGenEmail("");
+        setGenCount(1);
+        await loadPartnerCodes();
+      }
+    } catch {
+      setGenError("Connection failed");
+    } finally {
+      setGenerating(false);
+    }
+  }, [genPartner, genEmail, genCount, loadPartnerCodes]);
+
+  const handleCopy = useCallback((code: string) => {
+    navigator.clipboard.writeText(code).then(() => {
+      setCopiedCode(code);
+      setTimeout(() => setCopiedCode((c) => (c === code ? null : c)), 1500);
+    });
+  }, []);
 
   const totalRevenue = orders.reduce((s, o) => s + o.amount_paid, 0);
   const delivered = orders.filter((o) => o.status === "delivered").length;
@@ -198,7 +267,7 @@ export default function AdminDashboard({ orders }: { orders: OrderRecord[] }) {
 
         {/* Tabs */}
         <div className="flex gap-1 border-b border-white/5">
-          {(["orders", "marketing"] as Tab[]).map((t) => (
+          {(["orders", "marketing", "partners"] as Tab[]).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -208,7 +277,11 @@ export default function AdminDashboard({ orders }: { orders: OrderRecord[] }) {
                   : "text-ash hover:text-mist"
               }`}
             >
-              {t === "orders" ? `Orders (${orders.length})` : `Marketing (${customers.length})`}
+              {t === "orders"
+                ? `Orders (${orders.length})`
+                : t === "marketing"
+                ? `Marketing (${customers.length})`
+                : `Partner Codes (${partnerCodes.length})`}
             </button>
           ))}
         </div>
@@ -342,6 +415,103 @@ export default function AdminDashboard({ orders }: { orders: OrderRecord[] }) {
                       <tr>
                         <td colSpan={4} className="px-4 py-8 text-center text-ash text-sm">No customers yet</td>
                       </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Partner Codes Tab */}
+        {tab === "partners" && (
+          <div className="space-y-4">
+            <div className="glass-card p-6">
+              <p className="text-xs uppercase tracking-[0.2em] text-ash mb-4">
+                Generate Codes
+              </p>
+              <div className="grid sm:grid-cols-4 gap-3 mb-4">
+                <input
+                  type="text"
+                  placeholder="Partner (e.g. evalotter)"
+                  value={genPartner}
+                  onChange={(e) => setGenPartner(e.target.value)}
+                  className="px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-bone placeholder:text-ash/50 focus:outline-none focus:border-orchid/40 text-sm"
+                />
+                <input
+                  type="email"
+                  placeholder="Assigned email (optional)"
+                  value={genEmail}
+                  onChange={(e) => setGenEmail(e.target.value)}
+                  disabled={genCount > 1}
+                  className="px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-bone placeholder:text-ash/50 focus:outline-none focus:border-orchid/40 text-sm disabled:opacity-40"
+                />
+                <input
+                  type="number"
+                  min={1}
+                  max={200}
+                  value={genCount}
+                  onChange={(e) => setGenCount(Math.max(1, Number(e.target.value) || 1))}
+                  className="px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-bone focus:outline-none focus:border-orchid/40 text-sm"
+                />
+                <button
+                  onClick={handleGenerate}
+                  disabled={generating}
+                  className="btn-mystic px-4 py-2 text-white text-sm disabled:opacity-50 cursor-pointer"
+                >
+                  {generating ? "Generating…" : genCount > 1 ? `Generate ${genCount} Codes` : "Generate Code"}
+                </button>
+              </div>
+              {genError && <p className="text-red-400 text-xs">{genError}</p>}
+              <p className="text-xs text-ash/60">
+                Leave the assigned email blank for a generic single-use code any redeemer can claim under their own email — only set it to lock a code to one specific person.
+              </p>
+            </div>
+
+            <div className="glass-card overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-white/5 text-left">
+                      {["Code", "Partner", "Assigned To", "Status", "Redeemed By", "Created"].map((h) => (
+                        <th key={h} className="px-4 py-3 text-xs text-ash font-normal whitespace-nowrap">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {partnerLoading ? (
+                      <tr>
+                        <td colSpan={6} className="px-4 py-8 text-center text-ash text-sm">Loading…</td>
+                      </tr>
+                    ) : partnerCodes.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="px-4 py-8 text-center text-ash text-sm">No codes generated yet</td>
+                      </tr>
+                    ) : (
+                      partnerCodes.map((c) => (
+                        <tr key={c.code} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                          <td className="px-4 py-3 text-bone text-xs whitespace-nowrap">
+                            <button
+                              onClick={() => handleCopy(c.code)}
+                              className="font-mono hover:text-orchid transition-colors cursor-pointer"
+                              title="Copy code"
+                            >
+                              {c.code} {copiedCode === c.code ? "✓" : "⧉"}
+                            </button>
+                          </td>
+                          <td className="px-4 py-3 text-xs text-ash whitespace-nowrap">{c.partner ?? "—"}</td>
+                          <td className="px-4 py-3 text-xs text-ash whitespace-nowrap">{c.assigned_email ?? "any"}</td>
+                          <td className="px-4 py-3">
+                            {c.redeemed_at ? (
+                              <span className="px-2 py-0.5 rounded-full text-xs bg-emerald-900/40 text-emerald-400 border border-emerald-700/30">Redeemed</span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded-full text-xs bg-amber-900/40 text-amber-400 border border-amber-700/30">Available</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-xs text-mist whitespace-nowrap">{c.redeemed_email ?? "—"}</td>
+                          <td className="px-4 py-3 text-xs text-ash whitespace-nowrap">{fmtDate(c.created_at)}</td>
+                        </tr>
+                      ))
                     )}
                   </tbody>
                 </table>
