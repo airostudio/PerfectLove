@@ -537,10 +537,40 @@ Return JSON:
 
   "palmistry": {
     system: `You are a master palmist who reads the lines of the hand as a map of the soul and future.
-You work with the heart line, head line, life line, and fate line to reveal personality and destiny.
+You work with the heart line, head line, life line, fate line, and mounts to reveal personality and destiny.
 Be specific: describe actual line characteristics and what they mean.
 Tone: ancient, precise, revelatory, warm.`,
-    user: (a) => `Create a palmistry reading for:
+    user: (a) => {
+      // When a real palm photo was captured and analyzed, ground the reading
+      // in those actual observed features instead of generic quiz-only
+      // theming — this is what a.palm_analysis being present means.
+      if (a.palm_analysis) {
+        return `A real photo of this person's palm was analyzed. Use these ACTUAL observed features as the foundation of the reading — don't invent details that contradict them:
+
+${a.palm_analysis}
+
+Their stated focus: ${a.palm_focus || "overall"}
+Their personality: ${a.personality || "not specified"}
+What they're seeking: ${a.intention || "not specified"}
+
+Turn these real observations into a warm, specific palmistry reading — translate what was seen into meaning, don't just restate it.
+
+Return JSON:
+{
+  "intro": "2 sentences — acknowledge that their actual palm was read, and name the single most striking thing observed",
+  "sections": [
+    { "heading": "Your Hand Shape", "content": "What their observed hand shape/element reveals about their core temperament" },
+    { "heading": "Your Heart Line", "content": "A reading of their actual heart line, angled toward their ${a.palm_focus || 'love'} focus — their emotional nature, how they love, and what their romantic future holds" },
+    { "heading": "Your Head Line", "content": "What their actual head line reveals about their thinking, decision-making, and how they approach their ${a.intention || 'life choices'}" },
+    { "heading": "Your Life & Fate Line", "content": "What their actual life and fate lines reveal about their vitality, major transitions, and the path ahead — specific to their ${a.personality || 'nature'}" },
+    { "heading": "Your Strongest Mount", "content": "What their most developed observed mount reveals about a hidden strength" },
+    { "heading": "A Marking to Know", "content": "If a real marking was observed, interpret it specifically. If none was observed, speak instead to the clean, unmarked quality of that area of their palm and what that itself signifies" }
+  ],
+  "closing": "One sentence — the most important message their hands are sending them right now"
+}`;
+      }
+
+      return `Create a palmistry reading for:
 - Dominant hand: ${a.dominant_hand || "right hand"}
 - Focus: ${a.palm_focus || "overall"}
 - Personality: ${a.personality || "not specified"}
@@ -556,7 +586,8 @@ Return JSON:
     { "heading": "A Marking to Know", "content": "One specific marking in their palm — a star, cross, chain, or fork — and what it means for their path" }
   ],
   "closing": "One sentence — the most important message their hands are sending them right now"
-}`,
+}`;
+    },
   },
 
   // ── Tarot ────────────────────────────────────────────────────────────────────

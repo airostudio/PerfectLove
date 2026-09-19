@@ -8,6 +8,7 @@ import { getReading } from "@/lib/readings";
 import QuizStep from "@/components/QuizStep";
 import TeaserPreview from "@/components/TeaserPreview";
 import SketchFlow from "@/components/SketchFlow";
+import PalmistryFlow from "@/components/PalmistryFlow";
 import Link from "next/link";
 
 export default function ReadingQuizPage() {
@@ -48,6 +49,14 @@ export default function ReadingQuizPage() {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center px-6 py-20">
         <SketchFlow reading={reading} />
+      </main>
+    );
+  }
+
+  if (readingId === "palmistry") {
+    return (
+      <main className="min-h-screen flex flex-col items-center justify-center px-6 py-20">
+        <PalmistryFlow reading={reading} />
       </main>
     );
   }

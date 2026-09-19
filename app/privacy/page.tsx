@@ -40,6 +40,17 @@ export default function PrivacyPage() {
             reading.
           </li>
           <li>
+            <strong>Palm photo (Palmistry only, optional):</strong> if you
+            choose to use your camera, the photo is analyzed instantly by AI
+            to describe your palm&apos;s real lines, shape, and mounts, and
+            is <strong>never saved</strong> — not stored in our database, not
+            uploaded to any file storage, not logged. It exists only in your
+            browser and briefly in server memory for the single request it
+            takes to analyze it, then it&apos;s gone. Only the resulting text
+            description (not the photo) is kept, the same way any other
+            reading&apos;s answers are.
+          </li>
+          <li>
             <strong>Payment information:</strong> handled directly by
             Stripe. We receive confirmation that a payment succeeded and the
             amount, but never your full card number.
@@ -66,8 +77,12 @@ export default function PrivacyPage() {
         <p>
           Your quiz answers are sent to OpenAI to generate your reading text
           and, for sketch readings, your portrait image. This includes birth
-          details for Soulmate Sketch orders. We don&apos;t sell this
-          information, and it&apos;s used solely to produce your reading.
+          details for Soulmate Sketch orders, and — only if you choose to use
+          your camera — your palm photo for Palmistry orders, which OpenAI
+          processes for that one request and does not receive again; we
+          don&apos;t send it anywhere else and don&apos;t keep a copy. We
+          don&apos;t sell this information, and it&apos;s used solely to
+          produce your reading.
         </p>
       </LegalSection>
 

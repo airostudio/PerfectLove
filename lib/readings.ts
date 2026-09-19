@@ -250,7 +250,7 @@ export const readings: Reading[] = [
     id: "palmistry",
     title: "Palmistry Reading Report",
     description:
-      "Decode the lines in your hands to uncover your personality, future, and key life events. Explore your strengths and challenges through this unique insight.",
+      "Use your camera for a real analysis of your palm's lines, shape, and mounts — or skip the camera and answer a few questions instead. Your photo is never saved.",
     category: "palmistry",
     icon: "\u270B",
     href: "/reading/palmistry",

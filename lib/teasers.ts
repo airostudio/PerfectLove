@@ -117,8 +117,12 @@ export function getTeaser(
       hookLine: "Your full 2026 personalized forecast is ready.",
     },
     "palmistry": {
-      headline: "Your palms tell a story...",
-      preview: `Based on your ${answers.dominant_hand || "dominant"} hand focus, your heart line and fate line carry markings that reveal something most people overlook about their future.`,
+      headline: answers.palm_analysis
+        ? "We saw something in your palm..."
+        : "Your palms tell a story...",
+      preview: answers.palm_analysis
+        ? `Your actual heart line and fate line were just analyzed — and they carry markings that reveal something most people overlook about their future.`
+        : `Based on your ${answers.dominant_hand || "dominant"} hand focus, your heart line and fate line carry markings that reveal something most people overlook about their future.`,
       blurredLines: [
         "Your heart line indicates you will experience ████████ in love...",
         "A rare marking near your fate line suggests ██████████...",
