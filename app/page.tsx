@@ -17,7 +17,7 @@ const features = [
     icon: "\u2661",
     title: "Soulmate & Baby Sketches",
     description:
-      "Receive a personalized hand-drawn portrait of your soulmate or future child, channeled through your unique cosmic energy.",
+      "An AI-crafted portrait of your soulmate or future child, generated from your unique cosmic profile — a mystical experience, made possible by modern technology.",
   },
   {
     icon: "\u2749",
@@ -63,7 +63,7 @@ const testimonials = [
 const faqs = [
   {
     q: "What is a soulmate sketch reading?",
-    a: "A soulmate sketch reading uses your birth details and cosmic energy to channel a hand-drawn portrait of your destined romantic partner. You answer a short quiz, and a personalized sketch along with a detailed written reading is delivered to your inbox within 24 hours.",
+    a: "A soulmate sketch reading uses your birth details and cosmic profile to generate an AI-crafted portrait of your destined romantic partner — a creative, entertaining interpretation, not a literal prediction. You answer a short quiz, and a personalized sketch along with a detailed written reading is delivered to your inbox within 24 hours.",
   },
   {
     q: "How does a tarot reading work online?",
@@ -75,7 +75,7 @@ const faqs = [
   },
   {
     q: "Do I need to pay a subscription?",
-    a: "No. Every reading on PerfectLove is a one-time payment of $6.99. You take the quiz for free, see a preview of your reading, and only pay if you want the full detailed report. No subscriptions, no recurring charges.",
+    a: "Not unless you want one. Individual readings are one-time payments from $1.99–$6.99 — take the quiz for free, see a preview, and only pay for the full report. If you want more, the Complete Reading Collection unlocks all 26 readings for a one-time $24.99, or the Tarot & Astrology subscription gives unlimited fresh readings in those categories for $1.99/month, cancel anytime.",
   },
   {
     q: "How long until I receive my reading?",
@@ -83,7 +83,7 @@ const faqs = [
   },
   {
     q: "Can I access my readings again after purchase?",
-    a: "Yes! Simply sign in with the same email you used to purchase. All your past readings are saved to your account and accessible anytime from your personal dashboard.",
+    a: "Yes — sign in with the same email you used to purchase and every reading is in your personal dashboard for 60 days after delivery. After that, restoring access to an older reading is a one-time $1.99.",
   },
 ];
 
@@ -158,7 +158,7 @@ export default function LandingPage() {
           variants={fadeUp}
           className="mt-6 text-xs text-ash/60"
         >
-          Free quiz &middot; $6.99 per reading &middot; No subscription
+          Free quiz &middot; Readings from $1.99 &middot; No subscription required
         </motion.p>
       </section>
 
@@ -166,7 +166,7 @@ export default function LandingPage() {
       <section className="px-6 pb-16">
         <div className="max-w-2xl mx-auto flex flex-wrap justify-center gap-8 text-center">
           <div>
-            <p className="font-serif text-2xl text-bone">15+</p>
+            <p className="font-serif text-2xl text-bone">26</p>
             <p className="text-xs text-ash">Unique Readings</p>
           </div>
           <div className="w-px bg-orchid/10" />
@@ -176,13 +176,13 @@ export default function LandingPage() {
           </div>
           <div className="w-px bg-orchid/10" />
           <div>
-            <p className="font-serif text-2xl text-bone">$6.99</p>
-            <p className="text-xs text-ash">One-time</p>
+            <p className="font-serif text-2xl text-bone">$1.99+</p>
+            <p className="text-xs text-ash">Per Reading</p>
           </div>
           <div className="w-px bg-orchid/10" />
           <div>
             <p className="font-serif text-2xl text-bone">{"\u2726"}</p>
-            <p className="text-xs text-ash">No Subscription</p>
+            <p className="text-xs text-ash">No Subscription Required</p>
           </div>
         </div>
       </section>
@@ -215,12 +215,12 @@ export default function LandingPage() {
             {
               step: "02",
               title: "Preview Your Reading",
-              desc: "See a teaser of your personalized results instantly. If it resonates, unlock the full reading for a one-time $6.99.",
+              desc: "See a teaser of your personalized results instantly. If it resonates, unlock the full reading starting from $1.99.",
             },
             {
               step: "03",
               title: "Receive Your Reading",
-              desc: "Your complete, detailed reading is delivered to your inbox within 24 hours. Yours to keep forever.",
+              desc: "Your complete, detailed reading is delivered to your inbox within 24 hours, and saved to your dashboard for 60 days.",
             },
           ].map((item, i) => (
             <motion.div
@@ -388,8 +388,8 @@ export default function LandingPage() {
             Ready to See What the Universe Has Planned?
           </h2>
           <p className="text-mist/60 mb-8 max-w-md mx-auto">
-            Create your free account and explore 15+ personalized cosmic
-            readings. No subscription &mdash; just you and the stars.
+            Create your free account and explore 26 personalized cosmic
+            readings. No subscription required &mdash; just you and the stars.
           </p>
           <Link href="/auth">
             <motion.span

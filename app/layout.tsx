@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     template: "%s | PerfectLove",
   },
   description:
-    "Get hyper-personalized soulmate sketches, tarot readings, natal charts, compatibility reports, numerology, palmistry, and astrology forecasts. Take a free quiz and receive your full reading within 24 hours. One-time $6.99 — no subscription.",
+    "Get hyper-personalized soulmate sketches, tarot readings, natal charts, compatibility reports, numerology, palmistry, and astrology forecasts. Take a free quiz and receive your full reading within 24 hours. Readings from $1.99 — no subscription required.",
   keywords: [
     "soulmate sketch",
     "soulmate sketch reading",
@@ -51,14 +51,14 @@ export const metadata: Metadata = {
     title:
       "PerfectLove — Personalized Astrology, Tarot Readings & Soulmate Sketches",
     description:
-      "Hyper-personalized soulmate sketches, tarot readings, birth charts, and more. Take the free quiz and unlock your cosmic insights for just $6.99.",
+      "Hyper-personalized soulmate sketches, tarot readings, birth charts, and more. Take the free quiz and unlock your cosmic insights from just $1.99.",
     url: "/",
   },
   twitter: {
     card: "summary_large_image",
     title: "PerfectLove — Discover What the Stars Know About You",
     description:
-      "Personalized soulmate sketches, tarot readings, natal charts, and cosmic forecasts. Free quiz, $6.99 per reading, no subscription.",
+      "Personalized soulmate sketches, tarot readings, natal charts, and cosmic forecasts. Free quiz, readings from $1.99, no subscription required.",
   },
   robots: {
     index: true,
@@ -109,7 +109,7 @@ function JsonLd() {
         name: "What is a soulmate sketch reading?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "A soulmate sketch reading uses your birth details and cosmic energy to channel a hand-drawn portrait of your destined romantic partner. You answer a short quiz, and a personalized sketch along with a detailed written reading is delivered to your inbox within 24 hours.",
+          text: "A soulmate sketch reading uses your birth details and cosmic profile to generate an AI-crafted portrait of your destined romantic partner — a creative, entertaining interpretation, not a literal prediction. You answer a short quiz, and a personalized sketch along with a detailed written reading is delivered to your inbox within 24 hours.",
         },
       },
       {
@@ -133,7 +133,7 @@ function JsonLd() {
         name: "How much does a PerfectLove reading cost?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Every reading on PerfectLove is a one-time payment of $6.99. You take the quiz for free, see a preview, and only pay if you want the full detailed report. There are no subscriptions or recurring charges.",
+          text: "Individual readings are one-time payments from $1.99 to $6.99 — take the quiz for free, see a preview, and only pay for the full report. The Complete Reading Collection unlocks all 26 readings for a one-time $24.99, or the Tarot & Astrology subscription gives unlimited fresh readings in those categories for $1.99/month. No subscription is required for individual readings.",
         },
       },
       {
@@ -149,7 +149,7 @@ function JsonLd() {
         name: "Can I access my readings again after purchase?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes! Simply sign in with the same email you used to purchase. All your past readings are saved to your account and accessible anytime from your personal dashboard.",
+          text: "Yes — sign in with the same email you used to purchase and every reading is in your personal dashboard for 60 days after delivery. After that, restoring access to an older reading is a one-time $1.99.",
         },
       },
     ],
@@ -163,11 +163,13 @@ function JsonLd() {
       "Hyper-personalized astrology, tarot, soulmate sketch, and spiritual readings delivered to your inbox within 24 hours.",
     brand: { "@type": "Brand", name: "PerfectLove" },
     offers: {
-      "@type": "Offer",
-      price: "6.99",
+      "@type": "AggregateOffer",
+      lowPrice: "1.99",
+      highPrice: "24.99",
       priceCurrency: "USD",
+      offerCount: "28",
       availability: "https://schema.org/InStock",
-      priceValidUntil: "2026-12-31",
+      priceValidUntil: "2027-12-31",
     },
   };
 
