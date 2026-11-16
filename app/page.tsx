@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import HomeBackdrop from "@/components/HomeBackdrop";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -90,6 +91,7 @@ const faqs = [
 export default function LandingPage() {
   return (
     <main className="min-h-screen flex flex-col">
+      <HomeBackdrop />
       {/* ── Hero ── */}
       <section className="flex flex-col items-center justify-center px-6 pt-24 pb-20 text-center">
         <motion.p

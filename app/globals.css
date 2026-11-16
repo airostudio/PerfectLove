@@ -148,3 +148,52 @@ body {
 html {
   scroll-behavior: smooth;
 }
+
+/* Landing-page backdrop: outline art drifting at very low opacity */
+.home-backdrop symbol * {
+  vector-effect: non-scaling-stroke;
+}
+
+/* Fade the art further toward the centre, where the headline and copy sit */
+.home-backdrop {
+  -webkit-mask-image: radial-gradient(ellipse 55% 50% at 50% 38%, rgba(0, 0, 0, 0.25) 0%, #000 100%);
+  mask-image: radial-gradient(ellipse 55% 50% at 50% 38%, rgba(0, 0, 0, 0.25) 0%, #000 100%);
+}
+
+@keyframes bd-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(var(--r, 0deg)); }
+  50% { transform: translate3d(var(--dx, 8px), -18px, 0) rotate(calc(var(--r, 0deg) + 3deg)); }
+}
+
+@keyframes bd-twinkle {
+  0%, 100% { opacity: 0.04; transform: scale(0.85); }
+  50% { opacity: 0.28; transform: scale(1.1); }
+}
+
+.bd-drift {
+  transform: rotate(var(--r, 0deg));
+  animation: bd-drift 30s ease-in-out infinite;
+  will-change: transform;
+}
+
+.bd-twinkle {
+  animation: bd-twinkle 6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bd-drift,
+  .bd-twinkle {
+    animation: none;
+  }
+  .bd-twinkle {
+    opacity: 0.12;
+  }
+}
+
+/* Keep the large figures out from behind the headline on narrow screens */
+@media (max-width: 767px) {
+  .bd-fig {
+    width: 120px;
+    height: 144px;
+  }
+}
